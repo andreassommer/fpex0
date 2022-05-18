@@ -1,0 +1,6 @@
+[submodule "mmtools"]
+	path = mmtools
+	url = https://github.com/andreassommer/mmtools.git
+[submodule "optionlists"]
+	path = optionlists
+	url = https://github.com/andreassommer/optionlists.git
