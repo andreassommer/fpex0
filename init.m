@@ -9,8 +9,8 @@
 
 
 % global base directory
-global fpex0basedir
-fpex0basedir = pwd();
+global FPEX0
+FPEX0.paths.base = pwd();
 
 
 % For working on a network share: (only on Windows)
@@ -25,18 +25,23 @@ end
 
 % prepare paths
 clear FPEX0paths
-FPEX0paths.DSC204       = fullfile(fpex0basedir,'./DSC204');       % tools for DSC204 data processing
-FPEX0paths.optionlists  = fullfile(fpex0basedir,'./optionlists');  % key-value pairs as option lists 
-FPEX0paths.mmtools      = fullfile(fpex0basedir,'./mmtools');      % miscellaneous matlab tools
-FPEX0paths.measurements = ''; % set here the paths to measurements, if necessary
-% FPEX0paths.whatever   = fullfile(fpex0basedir,'./whatever');     % add whatever needed
+FPEX0.paths.DSC204       = fullfile(FPEX0.paths.base, './DSC204');       % tools for DSC204 data processing
+FPEX0.paths.optionlists  = fullfile(FPEX0.paths.base, './optionlists');  % key-value pairs as option lists 
+FPEX0.paths.mmtools      = fullfile(FPEX0.paths.base, './mmtools');      % miscellaneous matlab tools
+FPEX0.paths.measurements = fullfile(FPEX0.paths.base, '../DSC204_F1_Phoenix_Messungen'); % paths to measurements
+%FPEX0paths.whatever     = fullfile(FPEX0config.paths.base,'./whatever');     % add whatever needed
 
+% transform the paths to absolute paths
+for xTMPfieldname = fieldnames(FPEX0.paths)'
+   xTMPfullpath = what(FPEX0.paths.(xTMPfieldname{1}));  % extract path info 
+   FPEX0.paths.(xTMPfieldname{1}) = xTMPfullpath.path;   % write back absolute path
+end
 
 % add the paths
-for xTMPfieldname = fieldnames(FPEX0paths)'
+for xTMPfieldname = fieldnames(FPEX0.paths)'
    % extract full pathnames from the fields
-   xTMPfieldname = xTMPfieldname{1};   %#ok<FXSET>  % xTMPfiledname is a 1-element cell array
-   xTMPfullpath = FPEX0paths.(xTMPfieldname);   
+   xTMPfieldname = xTMPfieldname{1};             %#ok<FXSET>  % xTMPfiledname is a 1-element cell array
+   xTMPfullpath = FPEX0.paths.(xTMPfieldname);   % extract path name (may be relative)
    % check if directory exists
    if exist(xTMPfullpath,'dir')
       fprintf('Processing %s \t',xTMPfullpath);
@@ -47,11 +52,11 @@ for xTMPfieldname = fieldnames(FPEX0paths)'
       else
          fprintf('-- Already in path, skipping.\n');
       end
-   else % path does not exist: warn or error
+   else % path does not exist: warn
       if isempty(xTMPfullpath)
          warning('Path for %s is missing. You should update init.m accordingly.', xTMPfieldname);
       else
-         error('Missing path: %s',xTMPfullpath);
+         warning('Path for "%s" does not exist: %s', xTMPfieldname, xTMPfullpath);
       end
    end
 end

@@ -28,6 +28,13 @@ function varargout = haarhoffvdlinde(x,p)
    % Andreas Sommer, Dec2021
    % andreas.sommer@iwr.uni-heidelberg.de
    % code@andreas-sommer.eu
+   %
+   %
+   % Copyright 2016-2022, Andreas Sommer  code@andreas-sommer.eu
+   %
+   % Copying and distribution of this file, with or without modification, are permitted in any medium without royalty,
+   % provided the copyright notice and this notice are preserved. This file is offered as-is, without any warranty.
+
 
    persistent sym_dfdx sym_dfda0 sym_dfda1 sym_dfda2 sym_dfda3 sym_f
    persistent fun_dfdx fun_dfda0 fun_dfda1 fun_dfda2 fun_dfda3 fun_f
