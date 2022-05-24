@@ -50,7 +50,8 @@ function dataMat = DSC204_readData(fid, enc, columnCount, emptyVal)
             %        the number of read elements. So we have to add one.
             % read and interprete the line
             %datacells = textscan(line,'%f','Delimiter',enc.fieldDelimiter,'WhiteSpace'  ,'','EmptyValue',emptyVal);  % For Matlab2013
-            datacells = textscan(line,'%f','Delimiter',enc.fieldDelimiter,'TreatAsEmpty','','EmptyValue',emptyVal);  % For Matlab2017
+            %datacells = textscan(line,'%f','Delimiter',enc.fieldDelimiter,'TreatAsEmpty','','EmptyValue',emptyVal);  % For Matlab2017, breaks R2022a
+            datacells = textscan(line,'%f','Delimiter',enc.fieldDelimiter,'EmptyValue',emptyVal);  % shoud work for all
             datarow = reshape(datacells{1}, 1, []); % unwrap first cell layers
             if length(datarow) < columnCount
                datarow(end+1) = emptyVal;                        %#ok<AGROW>
@@ -63,9 +64,13 @@ function dataMat = DSC204_readData(fid, enc, columnCount, emptyVal)
       end
       
    catch err
-      disp('Error while reading data line #~d:')
-      disp(line)
-      rethrow(err)      
+      fprintf('Error while reading data line # %d: \n', linecount);
+      fprintf('Line content: %s\n', line);
+      fprintf('Catched error:\n');
+      disp(err)
+      fprintf('Stack trace:\n');
+      disp(err.stack)
+      rethrow(err)
    end
    
    % assemble data matrix
