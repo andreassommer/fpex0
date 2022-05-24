@@ -49,7 +49,7 @@ switch lower(type)
    case {'sigmoid','sigmoidal'}
       % sigmoidal interpolation as in Fig. 3 of DIN 51007
       
-      % substract baseline and integrate peak part "in between"
+      % subtract baseline and integrate peak part "in between"
       Xmid = X(index_l:index_r);
       Ymid = Y(index_l:index_r) - lin_bl_fun(Xmid);
       Ymid(Ymid<0) = 0;

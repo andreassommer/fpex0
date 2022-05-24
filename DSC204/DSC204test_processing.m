@@ -51,7 +51,7 @@ uVRi = interp1(TR, uVR, TS, 'linear');
 cpR = DSC204_cp_saphire_DIN11357(TS);
 cpS = DSC204_calc_cp_DIN11357(TS, 1, uVS, cpR, 1, uVRi, 0);
 % NOTES: * both the uV-Signals are uV/mg, so already normalized to mass 1!
-%        * we assume that both are "corrected" signale, i.e. the U0 is already substracted
+%        * we assume that both are "corrected" signale, i.e. the U0 is already subtracted
 
 % Normalize cp-value
 cpS = cpS ./ DSC204data.Tinfo.Tstep;   % divide by Tdot --> normalizes to beta = 1 K/min

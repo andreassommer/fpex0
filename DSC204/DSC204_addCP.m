@@ -157,9 +157,9 @@ cp.fun    = @(T) cpevaler(T);
 cp.blfun  = blfun;
 cp.bldata = bldata;
 
-% build the latent cp function               DSC204_substractBaseline(X , Yin, blfun,clearzero,nonnegative, onset       , endset)
-[latentCPvals, latentCPfun, latentCPfunpp] = DSC204_substractBaseline(TS, cpS, blfun, false   , true      , bldata.onset, bldata.endset);
-%[latentCPvals, latentCPfun, latentCPfunpp] = DSC204_substractBaseline(TS, cpS, blfun, true    , true      , bldata.onset, bldata.endset);
+% build the latent cp function               DSC204_subtractBaseline(X , Yin, blfun,clearzero,nonnegative, onset       , endset)
+[latentCPvals, latentCPfun, latentCPfunpp] = DSC204_subtractBaseline(TS, cpS, blfun, false   , true      , bldata.onset, bldata.endset);
+%[latentCPvals,latentCPfun, latentCPfunpp] = DSC204_subtractBaseline(TS, cpS, blfun, true    , true      , bldata.onset, bldata.endset);
 cp.latentdata  = latentCPvals;
 cp.latentfun   = latentCPfun;
 cp.latentfunpp = latentCPfunpp;

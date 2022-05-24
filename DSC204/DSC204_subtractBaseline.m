@@ -1,7 +1,7 @@
-function [Yvals, Yfun, Yfunpp] = DSC204_substractBaseline(X,Yin,blfun,clearzero,nonnegative,onset,offset)
-   %
+function [Yvals, Yfun, Yfunpp] = DSC204_subtractBaseline(X, Yin, blfun, clearzero, nonnegative, onset, endset)
+   % [Yvals, Yfun, Yfunpp] = DSC204_subtractBaseline(X, Yin, blfun, clearzero, nonnegative, onset, endset)
    % 
-   % Substracts
+   % Subtracts the baseline from given points.
    %
    % INPUT:     X --> x values (e.g. vector temperatures)
    %            Y --> y values or function (e.g. vector of cp values, or function cp(T))
@@ -9,7 +9,7 @@ function [Yvals, Yfun, Yfunpp] = DSC204_substractBaseline(X,Yin,blfun,clearzero,
    %    clearzero --> flag indicating to clear zeros (see DSC204_clearZeroFromMax) (default: true)
    %  nonnegative --> flag indicating to ensure nonnegativity                      (default: true)
    %        onset --> onset value (zero values are put below/left of this x value)   [optional]
-   %       offset --> offset value (zero values are put above/right of this x value) [optional]
+   %       endset --> endset value (zero values are put above/right of this x value) [optional]
    %
    % OUTPUT   Yvals --> processed y values
    %           Yfun --> function of processed values
@@ -24,7 +24,7 @@ function [Yvals, Yfun, Yfunpp] = DSC204_substractBaseline(X,Yin,blfun,clearzero,
    if (nargin < 4), clearzero   = true; end
    if (nargin < 5), nonnegative = true; end
    if (nargin < 6), onset  = min(x); end
-   if (nargin < 7), offset = max(x); end
+   if (nargin < 7), endset = max(x); end
 
    % if Y is a function, evaluate it at X, otherwise ensure correct dimensions
    if isnumeric(Yin)
@@ -39,9 +39,9 @@ function [Yvals, Yfun, Yfunpp] = DSC204_substractBaseline(X,Yin,blfun,clearzero,
    % substract baseline from Y data
    Yvals = Yvals - blfun(X);
    
-   % make zeros outside the interval [onset, offset]
+   % make zeros outside the interval [onset, endset]
    Yvals(X<onset) = 0;
-   Yvals(X>offset) = 0;
+   Yvals(X>endset) = 0;
    
    % nonnegativity
    if nonnegative
