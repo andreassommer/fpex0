@@ -59,8 +59,8 @@ if fromLeft
    idx = 1:initlen;
    runidx = initlen+1:lenX;
 else
-   idx = lenX:-1:lenX-(initlen+1);
-   runidx = (lenX-(initlen+1)):-1:1;
+   idx = lenX:-1:lenX-(initlen-1);
+   runidx = (lenX-(initlen-1)-1):-1:1;
 end
 
 
