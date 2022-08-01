@@ -8,7 +8,7 @@ function cpS = DSC204_calc_cp_DIN11357(T, mS, dscS, cpR, mR, dscR, dsc0)
    % 
    %   cpS(T) = cpR(T) * mR/mS * (dscS(T)-dsc0(T)) / (dscR(T)-dsc0(T))
    %
-   % INPUT:    T --> vector of temperatures to evaluate the cp-value  [function or double vector]
+   % INPUT:    T --> vector of temperatures to evaluate the cp-value  [double vector]
    %          mS --> mass of sample                                   [double]
    %        dscS --> DSC signal of sample (microvolts)                [function or double vector]
    %         cpR --> cp-values of reference                           [function or double vector]
