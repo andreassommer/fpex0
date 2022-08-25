@@ -26,24 +26,24 @@ function dx = FokkerPlanck_ODE(t, u, p, h, driftFcn, diffusionFcn)
    % code@andreas-sommer.eu
    %
 
-   % number of grid points
-   N = length(u);
+   % number of grid points and number of simultaneously requested vectors
+   [N, vectors] = size(u);
 
    % preallocate output
-   Bu = zeros(N, 1);
-   Au = zeros(N, 1);
+   Bu = zeros(N, vectors);
+   Au = zeros(N, vectors);
    
    % first node  (remember: Matlab is 1-based)
-   Bu(1) = ( -2*u(1) + 2*u(2) ) / h^2;
+   Bu(1,:) = ( -2*u(1,:) + 2*u(2,:) ) / h^2;
    % Au(1) is zero
    
    % inner nodes (remember: Matlab is 1-based, so starting from 2)
    i = 2:N-1;
-   Au(i) = ( u(i-1) - u(i+1) ) / (2*h);         % 1st derivative stencil and scale
-   Bu(i) = ( u(i-1) - 2*u(i) + u(i+1) ) / h^2;  % 2nd derivative stencil and scale
+   Au(i,:) = ( u(i-1,:) - u(i+1,:) ) / (2*h);           % 1st derivative stencil and scale
+   Bu(i,:) = ( u(i-1,:) - 2*u(i,:) + u(i+1,:) ) / h^2;  % 2nd derivative stencil and scale
    
    % last node   (remember: Matlab is 1-based, so last node is N)
-   Bu(N) = ( -2*u(N) + 2*u(N-1) ) / h^2;
+   Bu(N,:) = ( -2*u(N,:) + 2*u(N-1,:) ) / h^2;
    % Au(1) is zero
    
    % evaluate drift and diffusion
