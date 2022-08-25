@@ -3,7 +3,7 @@ function cpS = DSC204_calc_cp_DIN11357(T, mS, dscS, cpR, mR, dscR, dsc0)
    %
    % Calculates the (apparent) specific heat capacity.
    %
-   % It applies the "heat flow clibration" method: A known reference cp (of sapphire) 
+   % It applies the "heat flow calibration" method: A known reference cp (of sapphire) 
    % is rescaled using the mass-ratio and signal ratio of reference and sample.
    % 
    %   cpS(T) = cpR(T) * mR/mS * (dscS(T)-dsc0(T)) / (dscR(T)-dsc0(T))

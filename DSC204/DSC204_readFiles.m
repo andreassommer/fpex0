@@ -10,9 +10,9 @@ function dataStruct = DSC204_readFiles(fileSpecs)
    %                         See there for documentation.
    %
    %
-   % Author:  Andreas Sommer, Mar2017
+   % Author:  Andreas Sommer, Mar2017, Aug2022
    % andreas.sommer@iwr.uni-heidelberg.de
-   % email@andreas-sommer.eu
+   % code@andreas-sommer.eu
    %
    
    % if fileSpecs is a string, read files
@@ -23,7 +23,7 @@ function dataStruct = DSC204_readFiles(fileSpecs)
          error('Could not find any file matching "%s"', fileSpecs)
       end
       fileSpecs = fullfile(pathSpec,{dirlist.name});
-   end;
+   end
    
    % walk through the file specs
    count = length(fileSpecs);

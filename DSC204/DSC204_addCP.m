@@ -11,24 +11,32 @@ function DSCsample = DSC204_addCP(DSCsample, DSCreference, Tmin, Tmax, signalsou
 %                 Tmax --> upper temperature bound                             [default: 160 degC]
 %         signalsource --> choose 'uV' for DSC voltage or 'mW' for DSC heat flux   [default: 'uV']
 %
-% OUTPUT:    DSC204data --> DSCsample structure with additional field cp.
+% OUTPUT:   DSC204data --> DSCsample structure with additional field cp.
 %
-% Author:  Andreas Sommer, Apr2017, Oct2017
+% Author:  Andreas Sommer, Apr2017, Oct2017, Aug2022
 % andreas.sommer@iwr.uni-heidelberg.de
-% email@andreas-sommer.eu
+% code@andreas-sommer.eu
 %
 % TODO:   single DSCreference --> use automatic rescaling
 %          multi DSCreference --> sort by DSC rate, and use respective reference measurements
 %
 
-% setup
-debugMode = true;
 
-% defaults
-if (nargin < 5 || isempty(signalsource)); signalsource = 'uV'; end
-if (nargin < 4 || isempty(Tmax))        ; Tmax = 160;          end
-if (nargin < 3 || isempty(Tmin))        ; Tmin = 55;           end
+% import settings
+global DSC204settings
 
+debugMode   = getSetting(DSC204settings, 'addCP_debugMode'  , true);  % more verbosity?
+scaleByMass = getSetting(DSC204settings, 'addCP_scaleByMass', true);  % multiply signaly by mass (signals are often normed to mass 1)
+scaleToRate = getSetting(DSC204settings, 'addCP_scaleToRate', true);  % scale signals to heatrate (higher rates induce higher signals, see below)
+TrangeWarn  = getSetting(DSC204settings, 'addCP_TrangeWarn' , false); % warn if Tmin or Tmax exceed sample's or reference's temperature range
+
+% process input args
+if (nargin < 5 || isempty(signalsource)); signalsource = getSetting(DSC204settings, 'addCP_defaultSignalSource', 'uV'); end
+if (nargin < 4 || isempty(Tmax))        ;         Tmax = getSetting(DSC204settings, 'addCP_defaultTmax',  inf); end % previously: 160
+if (nargin < 3 || isempty(Tmin))        ;         Tmin = getSetting(DSC204settings, 'addCP_defaultTmin', -inf); end % previously:  55
+
+   
+   
 % make function applicable for struct arrays
 if length(DSCsample) > 1
    DSCsample = arrayfun(@(x) DSC204_addCP(x, DSCreference, Tmin, Tmax, signalsource), DSCsample);
@@ -58,72 +66,85 @@ if length(DSCreference) > 1
 end
 
 
+
 % FROM HERE:  DSCreference is a SINGLE (ONE-ELEMENT) structure
 
+
+fprintf('DSC204_addCP: Processing %s: ', DSCsample.ID);
+
+
+% Variable naming: AB
+%    A:    T -> Temperature   m -> mass   dsc -> dsc data
+%    B:    S -> Sample    R -> Reference  
+ 
+
 % quick accessors
-[~, TS, uVS, ~, mWS] = DSC204_quickAccessors(DSCsample);
-[~, TR, uVR, ~, mWR] = DSC204_quickAccessors(DSCreference);
+TR = DSCreference.data.T;
+TS = DSCsample.data.T;
 
-% message
-fprintf('DSC204_addCP: Processing %-40s: ', DSCsample.fileSpec);
-
-% assert data layout
-if ( not(DSC204_assertDataLayout(DSCsample)) || not(DSC204_assertDataLayout(DSCreference)) )
-   warning('Cannot ensure correct data layout. Proceed with fingers crossed!')
-end
-
-
-% select the signal type: µV (DSC raw signal) or mW (heat flux)
+% select the signal type: uV (DSC raw signal) or mW (heat flux)
 switch signalsource
    case 'uV'
-      xS = uVS;
-      xR = uVR;
+      dscS = DSCsample.data.uV;
+      dscR = DSCreference.data.uV;
    case 'mW'
-      xS = mWS;
-      xR = mWR;
+      dscS = DSCsample.data.mW;
+      dscR = DSCreference.data.mW;
    otherwise
       error('unknown signal source: %s', signalsource);
 end
 
+% calculate minima and maxima of sample and reference temperatures
+minTS = min(TS);   maxTS = max(TS);
+minTR = min(TR);   maxTR = max(TR);
+
+% issue a warning if Tmax or Tmin exceeds reference or sample temperature range
+if ( Tmin < max(minTS,minTR)  ||  Tmax > min(maxTS,maxTR) )
+   if debugMode
+      fprintf(' [ Tmin | minTS | minTR = %g | %g | %g  Tmax | maxTS | maxTR = %g | %g | %g ] ', ...
+         Tmin, minTS, minTR, Tmax, maxTS, maxTR);
+   end
+   if TrangeWarn
+      warning('Specified Tmin or Tmax exceeds sample or reference temperature range. Will be adjusted!');
+   end
+end
+
 
 % determine Tmin and Tmax
-Tmin = max( [min(TS), min(TR), Tmin] );
-Tmax = min( [max(TS), max(TR), Tmax] );
-
+Tmin = max( [minTS, minTR, Tmin] );
+Tmax = min( [maxTS, maxTR, Tmax] );
 
 % restrict temperatures and align everything at the temperature information of the sample measurement
 % note: this is the temperature of the empty reference crucible, not of the sample itself
 % get the signals of the reference corresponding to the temperatures of the sample.
-% we use linear interpolation here
+% we use linear interpolation and extrapolation here
 idxR = (TR >= Tmin  &  TR <= Tmax); 
 idxS = (TS >= Tmin  &  TS <= Tmax);
-TR = TR(idxR);
-xR = xR(idxR);
-xS = xS(idxS);
-TS = TS(idxS);
-xR = interp1(TR, xR, TS, 'linear', 'extrap');
-
-
-% % issue a warning if sample temperatures leave the reference temperature range
-% if (min(TS)<min(TR)  ||  max(TS)>max(TR))
-%    warning('Warning: sample temperature leaves reference temperature range!')
-% end
+dscR = dscR(idxR);
+dscS = dscS(idxS);
+TR   = TR(idxR);
+TS   = TS(idxS);
+dscR = interp1(TR, dscR, TS, 'linear', 'extrap');
 
 % masses
-mS   = DSCsample.mass;     % mass of sample
-mR   = DSCreference.mass;  % mass of reference
+mS = DSCsample.mass;     % mass of sample
+mR = DSCreference.mass;  % mass of reference
 
 % measurements are normalized to uV/mg, so we recover the original signal by multiplying with mass
-xS = mS * xS;
-xR = mR * xR;
+if scaleByMass
+   dscS = mS * dscS;
+   dscR = mR * dscR;
+end
+dsc0 = 0;   % disabled, since we already work with corrected signals
 
 % from carefully looking at the measurement data, we see that the voltage signal is proportional
-% to the heating rate, with proportionality constant 1.
+% to the heating rate, with proportionality constant approximately 1.
 % so we normalize both the sample and the reference signal to a heating rate of 1.0 K/min.
 % NOTE: this does also not interfere if betaR==betaS
-dscS = xS / betaS;
-dscR = xR / betaR;
-dsc0 = 0;  % disabled, since we already work with corrected signals
+if scaleToRate
+   dscS = dscS / betaS;
+   dscR = dscR / betaR;
+end
 
 % now retrieve the reference cp values of saphire (unit: degC)
 cpR = DSC204_cp_saphire_DIN11357(TS, 'degC');
@@ -141,9 +162,9 @@ cp.T      = TS;
 
 % store the piecewise polynomial with pchip interpolation
 cp.pp     = interp1(TS, cpS, 'pchip', 'pp');
-cp.fun    = @(T) cpevaler(T);
+cp.fun    = @(T) cpevaler(T, cp, minT, maxT);
    % Helper function to evaluate cp
-   function val = cpevaler(T)
+   function val = cpevaler(T, cp, Tmin, Tmax)
       val = NaN(size(T));
       nanIdx = (T<Tmin) | (T>Tmax);
       val(~nanIdx) = ppval(cp.pp, T(~nanIdx));
@@ -171,6 +192,6 @@ DSCsample.cp = cp;
 % xShowBaseline(DSCsample);
 
 % message
-fprintf('Done.\n')
+fprintf(' Done processing %s.\n', DSCsample.ID);
 
 end

@@ -13,7 +13,7 @@ function [blfun, bldata] = DSC204_getBaseline(X, Y, type, blds)
 %
 % Author:  Andreas Sommer, Apr2017
 % andreas.sommer@iwr.uni-heidelberg.de
-% email@andreas-sommer.eu
+% code@andreas-sommer.eu
 %
 
 % halt on warning?

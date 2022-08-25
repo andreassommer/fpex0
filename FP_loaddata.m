@@ -26,7 +26,7 @@ referencefilemask = fullfile(measdir, 'Waermekapazitaet_Saphirmessung', 'Sap-Kur
 
 % load dsc data
 dscdata = DSC204_readFiles(dscdatafilemask);
-dscdata = DSC204_sortByTstep(dscdata, 'ascend');
+dscdata = DSC204_sortByHeatrate(dscdata, 'ascend');
 
 % DEBUG: remove 0,3K/min measurements (they contain unreliable temperatures with multiple same values)
 idx03   = [dscdata.rate]==0.3 ;  % indices of 0.3 K/min measurements (testing for equality works here)
@@ -40,16 +40,16 @@ else
    smoothIDs = {'16-416'};
 end
 for k=1:length(dscdata)
-   if ismember(dscdata(k).desc.IDENTITY, smoothIDs) && (dscdata(k).rate == 0.6)
-      fprintf('DEBUG: Applying smoothing to ID %s\n', dscdata(k).desc.IDENTITY);
-      dscdata(k).data(:,3) = smoothdata(dscdata(k).data(:,3), 'sgolay', 75);
+   if ismember(dscdata(k).ID, smoothIDs) && (dscdata(k).rate == 0.6)
+      fprintf('DEBUG: Applying smoothing to ID %s\n', dscdata(k).ID);
+      dscdata(k).data.uV = smoothdata(dscdata(k).data.uV, 'sgolay', 75);   % smooth the uV signal
+      dscdata(k) = DSC204_addQuickAccessors(dscdata(k), -inf, +inf);       % update quick accessors
    end
 end
 
-
 % load saphire (reference) dsc data
 dscsaphire = DSC204_readFiles(referencefilemask);
-dscsaphire = DSC204_sortByTstep(dscsaphire, 'ascend');
+dscsaphire = DSC204_sortByHeatrate(dscsaphire, 'ascend');
 
 % add cp curves
 dscdata = DSC204_addCP(dscdata, dscsaphire);

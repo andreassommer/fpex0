@@ -1,16 +1,25 @@
-% INIT
-% INIT() Sets paths for FPEX0
+% initFPEX0
+% initFPEX0() Sets paths for FPEX0
 %
+% Adjust to your paths in the PATH PREPARATIONS section
 %
-% Copyright 2016-2022, Andreas Sommer  code@andreas-sommer.eu
+% Copyright 2016-2022
+% Andreas Sommer
+% andreas.sommer@iwr.uni-heidelberg.de
+% code@andreas-sommer.eu
 %
 % Copying and distribution of this file, with or without modification, are permitted in any medium without royalty, 
 % provided the copyright notice and this notice are preserved. This file is offered as-is, without any warranty.
 
 
-% global base directory
+% where am I ?
+[xTMPselfpath, ~, ~] = fileparts(which('initFPEX0.m'));
+
+% access global settings
 global FPEX0
-FPEX0.paths.base = pwd();
+
+% setup
+FPEX0.paths.base = xTMPselfpath;  % global base directory
 
 
 % For working on a network share: (only on Windows)
@@ -23,13 +32,16 @@ if ispc
 end
 
 
-% prepare paths
-clear FPEX0paths
+
+% PATHS PREPARATIONS
+% ==================
 FPEX0.paths.DSC204       = fullfile(FPEX0.paths.base, './DSC204');       % tools for DSC204 data processing
 FPEX0.paths.optionlists  = fullfile(FPEX0.paths.base, './optionlists');  % key-value pairs as option lists 
 FPEX0.paths.mmtools      = fullfile(FPEX0.paths.base, './mmtools');      % miscellaneous matlab tools
 FPEX0.paths.measurements = fullfile(FPEX0.paths.base, '../DSC204_F1_Phoenix_Messungen'); % paths to measurements
 %FPEX0paths.whatever     = fullfile(FPEX0config.paths.base,'./whatever');     % add whatever needed
+
+
 
 % transform the paths to absolute paths
 for xTMPfieldname = fieldnames(FPEX0.paths)'
@@ -62,11 +74,14 @@ for xTMPfieldname = fieldnames(FPEX0.paths)'
 end
 
 
+% activate the DSC204 settings
+DSC204_settings('ACTIVATE');
+
+
 % cleanup
-clear FPEX0paths
 clear xTMPfullpath 
 clear xTMPfieldname
-
+clear xTMPselfpath
 
 
  

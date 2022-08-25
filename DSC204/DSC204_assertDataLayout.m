@@ -6,8 +6,8 @@ function layoutOK = DSC204_assertDataLayout(DSC204data)
 % INPUT:    DSC204data --> DSC204 data structure as returned by DSC204_readFile(s)
 %
 % OUTPUT:          val --> boolean indicating the data layout is as expected:
-%                          {'Temp./°C'  'Time/min'  'DSC/(uV/mg)'  'Sensit./(uV/mW)'}
-%
+%                          {'Temp./DegC'  'Time/min'  'DSC/(uV/mg)'  'Sensit./(uV/mW)'}
+%                          (where Deg denotes the degree symbol)
 %
 
 % compatibility with array call
