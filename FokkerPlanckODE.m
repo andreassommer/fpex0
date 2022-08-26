@@ -1,5 +1,5 @@
-function dx = FokkerPlanck_ODE(t, u, p, h, driftFcn, diffusionFcn)
-   % dx = FokkerPlanck_ODE(t, u, p, h, driftFcn, diffusionFcn)
+function dx = FokkerPlanckODE(t, u, p, h, driftFcn, diffusionFcn)
+   % dx = FokkerPlanckODE(t, u, p, h, driftFcn, diffusionFcn)
    %
    % ODE RHS of Fokker-Planck PDE by using the method of lines (MOL) approach
    %
@@ -29,7 +29,7 @@ function dx = FokkerPlanck_ODE(t, u, p, h, driftFcn, diffusionFcn)
    % number of grid points and number of simultaneously requested vectors
    [N, vectors] = size(u);
 
-   % preallocate output
+   % preallocate vectors for A*u (approx. of u_x) and B*u (approx. of u_xx)
    Bu = zeros(N, vectors);
    Au = zeros(N, vectors);
    
@@ -44,7 +44,7 @@ function dx = FokkerPlanck_ODE(t, u, p, h, driftFcn, diffusionFcn)
    
    % last node   (remember: Matlab is 1-based, so last node is N)
    Bu(N,:) = ( -2*u(N,:) + 2*u(N-1,:) ) / h^2;
-   % Au(1) is zero
+   % Au(N) is zero
    
    % evaluate drift and diffusion
    alpha = driftFcn(t,p);
