@@ -1,5 +1,5 @@
-% initFPEX0
-% initFPEX0() Sets paths for FPEX0
+% FPEX0_initPaths
+% FPEX0_initPaths() Sets paths for FPEX0
 %
 % Adjust to your paths in the PATH PREPARATIONS section
 %
@@ -13,7 +13,7 @@
 
 
 % where am I ?
-[xTMPselfpath, ~, ~] = fileparts(which('initFPEX0.m'));
+[xTMPselfpath, ~, ~] = fileparts(which('FPEX0_initPaths.m'));
 
 % access global settings
 global FPEX0
