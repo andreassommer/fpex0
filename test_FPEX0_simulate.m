@@ -22,4 +22,4 @@ pvec = [ p_FPdrift  p_FPdiffusion  p_IC];
 sol = FPEX0_simulate(pvec);
 
 % display solution
-FPEX0_visualize(FPEX0, sol);
+FPEX0_visualize(sol, FPEX0);

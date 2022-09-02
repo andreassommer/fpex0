@@ -18,34 +18,6 @@ function settings = DSC204_settings(varargin)
 % code@andreas-sommer.eu
 %
 
-% access to global settings structure
-global DSC204settings
-
-% default values for input arguments
-replaceCurrentSettings = false;
-updateCurrentSettings = false;
-
-% shortcut for "nice" call using single "ACTIVATE" keyword
-if (nargin == 1) && strcmpi(varargin{1},'ACTIVATE')
-   settings = DSC204_settings('replace',true);
-   return
-end
-% process arguments
-argList  = varargin;
-argCount = length(argList);
-if mod(argCount, 2) == 1; error('Invalid number of arguments'); end
-% REPLACEMENT?
-if hasOption(argList, 'replace')
-   replaceCurrentSettings = getOption(argList, 'replace'); 
-   argList = removeOption(argList, 'replace');
-   argCount = argCount - 2;
-end
-% UPDATES?
-if hasOption(varargin, 'update')
-   updateCurrentSettings = getOption(argList, 'update');
-   argList = removeOption(argList, 'update'); 
-   argCount = argCount - 2;
-end
 
 
 % DEFAULT SETTINGS  ---  see the respective files for explanations
@@ -64,6 +36,42 @@ defaults.dataMAT_column_t  = 2;
 defaults.dataMAT_column_T  = 1;
 defaults.dataMAT_column_uV = 3;
 defaults.dataMAT_column_sf = 4;
+
+% =================
+% Do not edit below
+
+
+
+% access to global settings structure
+global DSC204settings
+
+% default values for input arguments
+replaceCurrentSettings = false;
+updateCurrentSettings = false;
+
+% shortcut for "nice" call using single "ACTIVATE" keyword
+if (nargin == 1) && strcmpi(varargin{1},'ACTIVATE')
+   settings = DSC204_settings('replace',true);
+   return
+end
+
+% process arguments
+argList  = varargin;
+argCount = length(argList);
+if mod(argCount, 2) == 1; error('Invalid number of arguments'); end
+% REPLACEMENT?
+if hasOption(argList, 'replace')
+   replaceCurrentSettings = getOption(argList, 'replace'); 
+   argList  = removeOption(argList, 'replace');
+   argCount = argCount - 2;
+end
+% UPDATES?
+if hasOption(varargin, 'update')
+   updateCurrentSettings = getOption(argList, 'update');
+   argList  = removeOption(argList, 'update'); 
+   argCount = argCount - 2;
+end
+
 
 
 % if settings are to be updated, use current settings instead of defaults

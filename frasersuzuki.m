@@ -13,7 +13,6 @@ function varargout = frasersuzuki(x,p)
    %                   p(3) = z  --> position of peak
    %                   p(4) = wr --> narrowness of peak
    %                   p(5) = sr --> skewness to the left
-   %            
    %
    % OUTPUT:     y --> y(x) values at position x
    %          dydp --> derivative w.r.t. to p
@@ -28,15 +27,18 @@ function varargout = frasersuzuki(x,p)
    % CONSTRAINTS:  sr > 0,  sr != 1,  1 < r < inf, often: r=2.
    %               No check is done on constraints!
    %
+   % Call without arguments to trigger function initialization.
+   %
    % Andreas Sommer, Aug2017, Aug2022
    % andreas.sommer@iwr.uni-heidelberg.de
    % code@andreas-sommer.eu
 
    persistent sym_dfdx sym_dfdr sym_dfdh sym_dfdz sym_dfdwr sym_dfdsr sym_f
    persistent fun_dfdx fun_dfdr fun_dfdh fun_dfdz fun_dfdwr fun_dfdsr fun_f
+   persistent initialized
    
    % Generate derivatives ones
-   if isempty(sym_dfdx) || (ischar(x) && strcmpi(x,'init'))
+   if isempty(initialized) || (nargin == 0)
       fprintf('frasersuzuki.m: Initializing partial derivatives... ');
       syms sym_r sym_h sym_z sym_wr sym_sr sym_x 
       sym_f = symfun( sym_h .* exp(-(log(sym_r))./(log(sym_sr).^2) * log(((sym_x-sym_z).*(sym_sr.^2-1))./(sym_wr.*sym_sr) + 1).^2)  , ...
@@ -56,6 +58,8 @@ function varargout = frasersuzuki(x,p)
       fun_dfdsr = matlabFunction(sym_dfdsr);
       fun_dfdx  = matlabFunction(sym_dfdx);
       fprintf('Done!\n');
+      initialized = true;
+      if (nargin==0), return; end;
    end
 
    % accessors

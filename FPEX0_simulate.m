@@ -46,17 +46,18 @@ function sol = FPEX0_simulate(p)
   
   % start integrattion
   success = false;
-%   try
+  try
      timeSIM = tic();
      sol = integrator(FPrhs, t0tf, u0, odeoptions);
      timeSIM = toc(timeSIM);
      success = true;
-%   catch err
-%      disp('Integration failed!');
-%      fprintf('Error id    : %s\n', err.identifier)
-%      fprintf('Error string: %s\n', err.message)
-%      sol = NaN;
-%   end
+  catch err
+     disp('Integration failed!');
+     fprintf('Error id    : %s\n', err.identifier)
+     fprintf('Error string: %s\n', err.message)
+     timeSIM = NaN;
+     sol = NaN;
+  end
     
   % Restore warning condition
   warning(saveWarning);

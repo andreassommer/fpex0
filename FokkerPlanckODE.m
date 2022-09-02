@@ -1,5 +1,5 @@
-function dx = FokkerPlanckODE(t, u, p, h, driftFcn, diffusionFcn)
-   % dx = FokkerPlanckODE(t, u, p, h, driftFcn, diffusionFcn)
+function dx = FokkerPlanckODE(t, u, h, driftFcn, driftParams, diffusionFcn, diffusionParams)
+   % dx = FokkerPlanckODE(t, u, h, driftFcn, driftParams, diffusionFcn, diffusionParams)
    %
    % ODE RHS of Fokker-Planck PDE by using the method of lines (MOL) approach
    %
@@ -8,18 +8,20 @@ function dx = FokkerPlanckODE(t, u, p, h, driftFcn, diffusionFcn)
    % FD-Approx:  u_x  = ( u(t,x+h) - u(t,x-h ) / (2h)
    %             u_xx = ( u(t,x+h) - 2u(t,x) + u(t,x-h) ) / h
    %
-   % INPUT:       t --> time
-   %              x --> state vector
-   %              p --> parameter vector for drift and diffusion
-   %              h --> MOL interval size
-   %       driftFcn --> drift function, evaluated at t,p
-   %   diffusionFcn --> diffusion function, evaluated at t,p
+   % INPUT:           t --> time
+   %                  x --> state vector
+   %                  h --> MOL interval size
+   %           driftFcn --> drift function, evaluated at t,driftP
+   %        driftParams --> parameter vector for drift function
+   %       diffusionFcn --> diffusion function, evaluated at t,driftP
+   %    diffusionParams --> parameter vector for diffusion function
    %
    % OUTPUT:  dx --> rhs vector
    %
    % If SolvIND is not available, use this function as pure Matlab implementation.
    %
-   % Note: Vectorized implementation
+   % Note: - vectorized implementation
+   %       - not accesing global FPEX0 configuration to speed up execution
    %
    % Andreas Sommer, Aug2022
    % andreas.sommer@iwr.uni-heidelberg.de
@@ -47,8 +49,8 @@ function dx = FokkerPlanckODE(t, u, p, h, driftFcn, diffusionFcn)
    % Au(N) is zero
    
    % evaluate drift and diffusion
-   alpha = driftFcn(t,p);
-   D = diffusionFcn(t,p);
+   alpha = driftFcn(t,driftParams);
+   D = diffusionFcn(t,diffusionParams);
    
    % assemble rhs
    dx = -alpha * Au + D * Bu;   
