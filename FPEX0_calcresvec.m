@@ -22,11 +22,8 @@ function [resvec, jacobian] = FPEX0_calcresvec(p_all)
    % access global configuration
    global FPEX0
    
-   %%% LATER MAYBE: persistent comparisonIndices % store the comparison indices once
-   
    % sorry, no derivatives available in Matlab-only implementation yet
    if (nargout > 1), error('Derivatives not yet available.'); end
-   
    
    % Debug messages
    if FPEX0.debugMode.calcresvec
@@ -85,7 +82,7 @@ function [resvec, jacobian] = FPEX0_calcresvec(p_all)
    time_resvec = toc(resvecTICid);
    
    % store some statistics in settings closure
-   FPEX0.sim.time_resvec = time_resvec;
+   % FPEX0.sim.time_resvec = time_resvec;
    
    % finito
    return

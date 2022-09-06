@@ -18,14 +18,20 @@ function FPEX0_setup(varargin)
 % access to globale setup 
 global FPEX0
 
+% cyclic memory pointer
+persistent storageID
+if isempty(storageID), storageID = 1; end
+
 
 % SET SOME DEFAULTS
 defaults.grid.N         = 1001;                                   % number of grid points
 defaults.grid.gridT     = linspace(60, 160, defaults.grid.N);     % x-grid = temperatures
 defaults.grid.gridTdot  = linspace( 0,  20, 20 );                 % t-grid = heating rates
+defaults.storage.size   = 10;
 
 % parameter layout
-defaults.parameters.values          = [0 0 0 0 2 40 135 15 0.1000];   % 0 drift, 0 diffusion, Fraser Suziki params
+defaults.parameters.initvalues      = [0 0 0 0 2 40 135 15 0.1000];   % 0 drift, 0 diffusion, Fraser Suziki params
+defaults.parameters.values          = defaults.parameters.initvalues;
 defaults.parameters.idx.FPdrift     = 1:2;
 defaults.parameters.idx.FPdiffusion = 3:4;
 defaults.parameters.idx.iniDist     = 5:9;
@@ -33,15 +39,25 @@ defaults.parameters.idx.iniDist     = 5:9;
 % transfer the defaults
 FPEX0.grid       = defaults.grid;
 FPEX0.parameters = defaults.parameters;
-
-
+FPEX0.storage.size = defaults.storage.size;
 
 
 % process arguments
 args = varargin;
-if hasOption(args, 'grid')      , FPEX0.grid = getOption(args, 'grid');       end
-if hasOption(args, 'parameters'), FPEX0.grid = getOption(args, 'parameters'); end
+if hasOption(args, 'grid')
+   FPEX0.grid = getOption(args, 'grid');         % grid specified
+   FPEX0.grid.N = length(FPEX0.grid);            % update grid elements
+end
+if hasOption(args, 'parameters')
+   FPEX0.grid = getOption(args, 'parameters'); 
+end
 
+
+% initialize storage
+FPEX0.storage.runID   = cell(FPEX0.storage.size, 1);
+FPEX0.storage.timeSIM = cell(FPEX0.storage.size, 1);
+FPEX0.storage.success = cell(FPEX0.storage.size, 1);
+FPEX0.storage.sol     = cell(FPEX0.storage.size, 1);
 
 
 % setup debug modes
@@ -53,7 +69,7 @@ FPEX0.debugMode.simulate   = false;
 FPEX0.grid.h = diff(FPEX0.grid.gridT([end 1])) / FPEX0.grid.N; % grid step size
 
 % PARAMETERS: update remaining quantities
-FPEX0.parameters.count      = length(FPEX0.parameters.values);
+FPEX0.parameters.count      = length(FPEX0.parameters.initvalues);
 FPEX0.parameters.idx.all    = 1:FPEX0.parameters.count;
 FPEX0.parameters.idx.FPall  = [FPEX0.parameters.idx.FPdrift, FPEX0.parameters.idx.FPdiffusion]; % combined FP parameters
 
@@ -85,23 +101,23 @@ FPEX0.parameters.extract.FPdiffusion = @extractP_FPdiffusion;
 FPEX0.parameters.extract.iniDist     = @extractP_iniDist;
 % This seemingly clumsy implementation ensures that we always access the current values,
 % and not old ones over which has been closed
-% Note: Think of this example:   FPEX0.parameters.get.all = @() FPEX0.parameters.values
+% Note: Think of this example:   FPEX0.parameters.get.all = @() FPEX0.parameters.initvalues
 %       Here, we close over FPEX0.parameters.values, i.e. these values are fixed in the instant
 %       when the anonymous function @() is created! FPEX0 is never accessed afterwards!
 
-% get internally stored parameters
-function p = getP_all();         p = FPEX0.parameters.values;                                   end
-function p = getP_FPall();       p = FPEX0.parameters.values(FPEX0.parameters.idx.FPall);       end
-function p = getP_FPdrift();     p = FPEX0.parameters.values(FPEX0.parameters.idx.FPdrift);     end
-function p = getP_FPdiffusion(); p = FPEX0.parameters.values(FPEX0.parameters.idx.FPdiffusion); end
-function p = getP_iniDist();     p = FPEX0.parameters.values(FPEX0.parameters.idx.iniDist);     end
-
-% set internally stored parameters
-function setP_all(p);         FPEX0.parameters.values = p;                                   end
-function setP_FPall(p);       FPEX0.parameters.values(FPEX0.parameters.idx.FPall) = p;       end
-function setP_FPdrift(p);     FPEX0.parameters.values(FPEX0.parameters.idx.FPdrift) = p;     end
-function setP_FPdiffusion(p); FPEX0.parameters.values(FPEX0.parameters.idx.FPdiffusion) = p; end
-function setP_iniDist(p);     FPEX0.parameters.values(FPEX0.parameters.idx.iniDist) = p;     end
+% % % % get internally stored parameters
+% % % function p = getP_all();         p = FPEX0.parameters.values;                                   end
+% % % function p = getP_FPall();       p = FPEX0.parameters.values(FPEX0.parameters.idx.FPall);       end
+% % % function p = getP_FPdrift();     p = FPEX0.parameters.values(FPEX0.parameters.idx.FPdrift);     end
+% % % function p = getP_FPdiffusion(); p = FPEX0.parameters.values(FPEX0.parameters.idx.FPdiffusion); end
+% % % function p = getP_iniDist();     p = FPEX0.parameters.values(FPEX0.parameters.idx.iniDist);     end
+% % % 
+% % % % set internally stored parameters
+% % % function setP_all(p);         FPEX0.parameters.values = p;                                   end
+% % % function setP_FPall(p);       FPEX0.parameters.values(FPEX0.parameters.idx.FPall) = p;       end
+% % % function setP_FPdrift(p);     FPEX0.parameters.values(FPEX0.parameters.idx.FPdrift) = p;     end
+% % % function setP_FPdiffusion(p); FPEX0.parameters.values(FPEX0.parameters.idx.FPdiffusion) = p; end
+% % % function setP_iniDist(p);     FPEX0.parameters.values(FPEX0.parameters.idx.iniDist) = p;     end
 
 % extract parameters given as variable
 function p = extractP_all(pp);         p = pp;                                   end
@@ -120,13 +136,33 @@ FPEX0.sim.sol = NaN;   % will be filled by FPEX0_simulate
 FPEX0.measurements = [];   % will be filled by FPEX0_importMeasurements
 
 % integration setting
-FPEX0.integration.reltol     = 1.0e-08;
-FPEX0.integration.abstol     = 1.0e-10;
+FPEX0.integration.reltol     = 1.0e-06;
+FPEX0.integration.abstol     = 1.0e-08;
 FPEX0.integration.integrator = @ode15s;
 FPEX0.integration.updateOptionsJacobian = @update_FPODE_integratorOptions_Jacobian;
 FPEX0.integration.options    = make_FPODE_defaultIntegratorOptions(FPEX0);
 
 
+
+
+
+% access to storage
+FPEX0.store = @store;
+
+
+% FINITO
+return
+
+
+% HELPER: store simulation runs in cyclic memory
+function store(runID, timeSIM, success, sol)
+   storageID = storageID + 1; 
+   if (storageID > FPEX0.storage.size); storageID = 1; end
+   FPEX0.storage.runID{storageID}   = runID;
+   FPEX0.storage.timeSIM{storageID} = timeSIM;
+   FPEX0.storage.success{storageID} = success;
+   FPEX0.storage.sol{storageID}     = sol;
+end
 
 
 end
@@ -152,11 +188,7 @@ function rhsfun = make_FPODE_rhsfun(h, driftFcn, driftParams, diffusionFcn, diff
    rhsfun = @(t,u) FokkerPlanckODE(t, u, h, driftFcn, driftParams, diffusionFcn, diffusionParams);
 end
 
-
-
-
-
-% options and integrator selection % DEBUG / TODO:  must be adjusted when N changes
+% options and integrator selection
 function opts = make_FPODE_defaultIntegratorOptions(FPEX0)
    opts = odeset(...
         'AbsTol'      , FPEX0.integration.abstol  ...
@@ -168,7 +200,7 @@ function opts = make_FPODE_defaultIntegratorOptions(FPEX0)
       , 'stats'       , 'off'      );
 end
 
-% update options:  must be adapted when 
+% update options
 function opts = update_FPODE_integratorOptions_Jacobian(opts, jacobian)
    opts = odeset(opts, 'Jacobian', jacobian);
 end

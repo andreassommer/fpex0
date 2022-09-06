@@ -12,20 +12,24 @@ function sol = FPEX0_simulate(p)
   % code@andreas-sommer.eu
   %
   
+  % store running index
+  persistent runID
+  
   % access global configuration
   global FPEX0
 
-  % update current parameter vector
-  FPEX0.parameters.values = p;
+  % initialize or increment running ID
+  if isempty(runID), runID = 0; end
+  runID = runID + 1;
   
   % extract parameters
-  p_FPdrift     = FPEX0.parameters.get.FPdrift();
-  p_FPdiffusion = FPEX0.parameters.get.FPdiffusion();
-  p_IC          = FPEX0.parameters.get.iniDist();
+  p_FPdrift     = FPEX0.parameters.extract.FPdrift(p);
+  p_FPdiffusion = FPEX0.parameters.extract.FPdiffusion(p);
+  p_IC          = FPEX0.parameters.extract.iniDist(p);
   
   % evaluate initial distribution
-  xgrid         = FPEX0.grid.gridT;
-  u0            = FPEX0.functions.iniDist(xgrid, p_IC);
+  gridT         = FPEX0.grid.gridT;
+  u0            = FPEX0.functions.iniDist(gridT, p_IC);
  
   % retrieve "time" horizon for integrator
   t0tf          = FPEX0.grid.gridTdot([1 end]);  
@@ -62,9 +66,7 @@ function sol = FPEX0_simulate(p)
   % Restore warning condition
   warning(saveWarning);
   
-  % transfer statistics and solution
-  FPEX0.sim.time    = timeSIM;
-  FPEX0.sim.success = success;
-  FPEX0.sim.sol     = sol;
+  % store simulation data (kind of DEBUG)
+  FPEX0.store(runID, timeSIM, success, sol);
   
 end

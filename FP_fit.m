@@ -15,8 +15,7 @@ function results = FP_fit(varargin)
    % defaults
    optimizer = 'lsqnonlinFD';
    iniDist   = 'frasersuzuki';
-% % %    draw_sol_fignum   = 666;
-% % %    FPwithDrain       = false;   
+
 
    % process input arguments
    if hasOption(varargin, 'optimizer') ,   optimizer = getOption(varargin, 'Optimizer');  end
@@ -56,13 +55,12 @@ function results = FP_fit(varargin)
       otherwise
          error('Unknown ICparametrization: "%s"', iniDist);
    end
-
    
    % parameters for Fokker-Planck
    %        [    p_FPdrift       ;      p_FPdiff    ];
-   pFP    = [   0.1   ;  +0.3    ;  0.1   ;  0.5    ];  % lineare drift und diffusion
+   pFP    = [   0.1   ;  +0.1    ;  0.2   ;  0.1    ];  % lineare drift und diffusion
    pFP_lb = [  -0.1   ;  -0.1    ;  0.00  ;  0.00   ];  %
-   pFP_ub = [  10.1   ;  10.1    ;  1.01  ;  1.01   ];  %
+   pFP_ub = [  10.1   ;  10.1    ; 10.00  ; 10.00   ];  %
 
    % TEST DEBUG: Konstante Diffusion
    % pFP_lb(4) = 0; pFP_ub(4) = 0; 
@@ -102,34 +100,8 @@ function results = FP_fit(varargin)
    A_diff_constr(3:4) = [-1  -gridTdot(end)];    % diffusion parameters at idx 3 & 4
    b_diff_constr      = 0;
 
-%    % setup settings
-%    settings.np0               = np0;
-%    settings.np                = np;
-%    settings.p0_lb             = p0_lb;
-%    settings.p0_ub             = p0_ub;
-%    settings.p_lb              = p_lb;
-%    settings.p_ub              = p_ub;
-%    
-%    settings.icfun             = icfun;
-%    
-%    settings.gridT             = gridT;
-%    settings.gridTdot          = gridTdot;
-%    settings.FPwithDrain       = FPwithDrain;
-%    settings.dscdata           = dscdata;
-%    
-%    settings.time_FPsim        = [];
-%    settings.time_resvec       = []; 
-%    settings.time_drawsol      = []; 
-%    settings.draw_sol_fignum   = draw_sol_fignum;
-%    settings.needNewIntegrator = true;
-%    
-%    % wrap in closure
-%    settingsClosure = makeClosure(settings);
-%    
-
-   % set residual function
+   % set function that computes the residual vector
    resvecfun = @(p) FPEX0_calcresvec(p);
-   
      
    % optimization
    fprintf('\nStarting:  %s\n', optimizer)
@@ -185,12 +157,12 @@ function results = FP_fit(varargin)
          % keyboard
          fmincon_opts = optimoptions('fmincon');
          fmincon_opts.Algorithm                = 'sqp';%'interior-point'; %'sqp'  %'active-set';
-         fmincon_opts.SpecifyObjectiveGradient = true;
+         fmincon_opts.SpecifyObjectiveGradient = false; % no derivatives yet
          fmincon_opts.Display                  = 'iter-detailed';
          fmincon_opts.StepTolerance            = 1.0d-6;
          fmincon_opts.FunctionTolerance        = 1.0d-10;
-         fmincon_opts.OptimalityTolerance      = 1.0d-2; 
-         %fmincon_opts.CheckGradients           = true;
+         fmincon_opts.OptimalityTolerance      = 1.0d-1; 
+         fmincon_opts.CheckGradients           = true;
          fmincon_opts.TypicalX                 = p_all;
          fmincon_opts.UseParallel              = true;
          [x,fval,exit,out,lambda,grad,hessian] = fmincon(@scalarobjective, p_all, A_diff_constr, b_diff_constr, [], [], p_all_lb, p_all_ub, [], fmincon_opts);
@@ -201,7 +173,14 @@ function results = FP_fit(varargin)
          
       case 'FMINSEARCH'
          % ============ Derivative-free method
-         fminsearch_opts = optimset('display','iter','TolX',1e-3,'MaxFunEvals',10000,'MaxIter',10000,'FunValCheck','on'); % options
+         fminsearch_opts = optimset();
+         fminsearch_opts.display     = 'iter';
+         fminsearch_opts.TolX        = 1e-3;
+         fminsearch_opts.MaxFunEvals = 10000;
+         fminsearch_opts.MaxIter     = 10000;
+         fminsearch_opts.FunValCheck = 'on';
+         fminsearch_opts.UseParallel = 'true';
+         fminsearch_opts.Diagnostics = 'on';
          resvecnormfun = @(p) norm(resvecfun(p));
          [x,fval,exit] = fminsearch(resvecnormfun, p_all, fminsearch_opts);
          sol = struct('x',x,'fval',fval,'exitflag',exit,'resnorm',fval);
@@ -236,6 +215,9 @@ function results = FP_fit(varargin)
    
    
    
+   % store the solution
+   FPEX0.sim.sol = sol;
+   
    % Confidence regions
    %%% settings.poptci  = FP_calcConfidenceFromSolution(sol, 0.95);
 
@@ -253,7 +235,7 @@ function results = FP_fit(varargin)
    
    % ==================================================
    
-   % helper for fmincon
+   % helpers for fmincon
    function [ff, jj] = scalarobjective(ppp)
       if (nargout==1)
          ff = 0.5 * norm(resvecfun(ppp))^2;
@@ -270,10 +252,10 @@ end
 
 
 % output function
-function stop = optimizer_outfun(x,optimValues,state)
+function stop = optimizer_outfun(x,~,state)
+   global FPEX0
    stop = false;
    if strcmp(state,'iter')
-      global FPEX0
       FPEX0.debugMode.calcresvec = true;
       FPEX0_calcresvec(x); % generates graphic output
       FPEX0.debugMode.calcresvec = false;

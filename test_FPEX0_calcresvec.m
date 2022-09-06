@@ -6,6 +6,6 @@ test_FPEX0_importMeasurements
 
 % evaluate residual vector on nominal parameter values
 fprintf('Evaluating residual vector . . . ');
-params = FPEX0.parameters.get.all();
+params = FPEX0.parameters.initvalues;
 resvec = FPEX0_calcresvec(params);
 fprintf('Evaluated.\n');
