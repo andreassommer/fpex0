@@ -1,10 +1,13 @@
-function [resvec, jacobian] = FPEX0_calcresvec(p_all)
-   %  [resvec, jacobian] = FPEX0_calcresvec(p_all)
+function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
+   %  [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
    %
-   %  INPUT:         p_all --> parameter vector
+   %  INPUT:  
+   %     FPEX0setup --> FPEX0 setup class object
+   %          p_all --> parameter vector
    %
-   %  OUTPUT:   resvec --> vector of residuals
-   %          jacobian --> jacobian matrix (optional, if requested)  % NOT AVAILABLE IN MATLAB-ONLY VERSION
+   %  OUTPUT:   
+   %         resvec --> vector of residuals
+   %       jacobian --> jacobian matrix (optional, if requested)  % NOT AVAILABLE IN MATLAB-ONLY VERSION
    %
    %
    %  NOTE:  the settings structure containts the following fields:
@@ -19,14 +22,12 @@ function [resvec, jacobian] = FPEX0_calcresvec(p_all)
    %
    
    
-   % access global configuration
-   global FPEX0
    
    % sorry, no derivatives available in Matlab-only implementation yet
    if (nargout > 1), error('Derivatives not yet available.'); end
    
    % Debug messages
-   if FPEX0.debugMode.calcresvec
+   if FPEX0setup.debugMode.calcresvec
       paramString = sprintf('%22.16f ', p_all );
       fprintf('calcresvec:  p = [ %s ]\n', paramString);
    end
@@ -36,21 +37,20 @@ function [resvec, jacobian] = FPEX0_calcresvec(p_all)
    % To avoid implicit weighting, use the gridT and interpolate/evaluate the dsc-data at these grid points!
 
    % get the measurement data to compare the simulation with
-   meas_count  = length(FPEX0.measurements);
-   meas_values = { FPEX0.measurements.values       }; % cell array of double arrays
-   meas_T      = { FPEX0.measurements.temperatures }; % cell array of double arrays
-   meas_rates  = [ FPEX0.measurements.heatrate     ]; % double array
+   meas_count  = length(FPEX0setup.Measurements);
+   meas_values = { FPEX0setup.Measurements.values       }; % cell array of double arrays
+   meas_T      = { FPEX0setup.Measurements.temperatures }; % cell array of double arrays
+   meas_rates  = [ FPEX0setup.Measurements.heatrate     ]; % double array
    % NOTES: * The measurement temperatures must be "compatible" with the integration grid,
    %          i.e. they must be a subset of the integration space (=temperature) grid points
    %        * Same holds for measurement rates: they must be a subset of the 
    %          integration time grid.
    
-   % get integration "time" grid (heating rates) and "space" grid (temperatures)
-   grid_T    = FPEX0.grid.gridT;
-%  grid_Tdot = FPEX0.grid.gridTdot;   
+   % get integration "time" grid (heating rates)
+   grid_T    = FPEX0setup.Grid.gridT;
    
    % simulate and store the FP solution
-   sol = FPEX0_simulate(p_all);
+   sol = FPEX0_simulate(FPEX0setup, p_all);
    
    % extract simulation data at heating rates
    simdata = deval(sol, meas_rates);
@@ -69,14 +69,14 @@ function [resvec, jacobian] = FPEX0_calcresvec(p_all)
       measVals = meas_values{k}(compIdxMeas);   % measurements restricted to simulation grid
       simVals  = simdata(compIdxSim, k);        % simulations restricted to measurement grid
       resvecs{k} = measVals - simVals;          % residuals
-      if FPEX0.debugMode.calcresvec
+      if FPEX0setup.debugMode.calcresvec
          showDEBUG(meas_T{k}, simVals, measVals, resvecs{k}, meas_count, k); %% DEBUG: illustration
       end
    end
 
    
    % concatenate to residual vector
-   resvec = [resvecs{:}];
+   resvec = vertcat( resvecs{:} );
 
    % stop time measurement
    time_resvec = toc(resvecTICid);

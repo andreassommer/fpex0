@@ -15,11 +15,11 @@
 % where am I ?
 [xTMPselfpath, ~, ~] = fileparts(which('FPEX0_initPaths.m'));
 
-% access global settings
-global FPEX0
+% access global path settings
+global FPEX0paths
 
 % setup
-FPEX0.paths.base = xTMPselfpath;  % global base directory
+FPEX0paths.base = xTMPselfpath;  % global base directory
 
 
 % For working on a network share: (only on Windows)
@@ -35,25 +35,25 @@ end
 
 % PATHS PREPARATIONS
 % ==================
-FPEX0.paths.DSC204       = fullfile(FPEX0.paths.base, './DSC204');       % tools for DSC204 data processing
-FPEX0.paths.optionlists  = fullfile(FPEX0.paths.base, './optionlists');  % key-value pairs as option lists 
-FPEX0.paths.mmtools      = fullfile(FPEX0.paths.base, './mmtools');      % miscellaneous matlab tools
-FPEX0.paths.measurements = fullfile(FPEX0.paths.base, '../DSC204_F1_Phoenix_Messungen'); % paths to measurements
-%FPEX0paths.whatever     = fullfile(FPEX0config.paths.base,'./whatever');     % add whatever needed
+FPEX0paths.DSC204       = fullfile(FPEX0paths.base, './DSC204');       % tools for DSC204 data processing
+FPEX0paths.optionlists  = fullfile(FPEX0paths.base, './optionlists');  % key-value pairs as option lists 
+FPEX0paths.mmtools      = fullfile(FPEX0paths.base, './mmtools');      % miscellaneous matlab tools
+FPEX0paths.measurements = fullfile(FPEX0paths.base, '../DSC204_F1_Phoenix_Messungen'); % paths to measurements
+%FPEX0paths.whatever     = fullfile(FPEX0config.base,'./whatever');     % add whatever path is ggggggggneeded
 
 
 
 % transform the paths to absolute paths
-for xTMPfieldname = fieldnames(FPEX0.paths)'
-   xTMPfullpath = what(FPEX0.paths.(xTMPfieldname{1}));  % extract path info 
-   FPEX0.paths.(xTMPfieldname{1}) = xTMPfullpath.path;   % write back absolute path
+for xTMPfieldname = fieldnames(FPEX0paths)'
+   xTMPfullpath = what(FPEX0paths.(xTMPfieldname{1}));  % extract path info 
+   FPEX0paths.(xTMPfieldname{1}) = xTMPfullpath.path;   % write back absolute path
 end
 
 % add the paths
-for xTMPfieldname = fieldnames(FPEX0.paths)'
+for xTMPfieldname = fieldnames(FPEX0paths)'
    % extract full pathnames from the fields
    xTMPfieldname = xTMPfieldname{1};             %#ok<FXSET>  % xTMPfiledname is a 1-element cell array
-   xTMPfullpath = FPEX0.paths.(xTMPfieldname);   % extract path name (may be relative)
+   xTMPfullpath = FPEX0paths.(xTMPfieldname);   % extract path name (may be relative)
    % check if directory exists
    if exist(xTMPfullpath,'dir')
       fprintf('Processing %s \t',xTMPfullpath);

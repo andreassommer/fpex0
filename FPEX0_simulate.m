@@ -1,5 +1,5 @@
-function sol = FPEX0_simulate(p)
-  % sol = FPEX0_simumlate(p)
+function sol = FPEX0_simulate(FPEX0setup, p)
+  % sol = FPEX0_simumlate(FPEX0setup, p)
   %
   % Simulates Fokker-Planck with specified parameters for FP drift, diffusion, and initial function.
   %
@@ -14,36 +14,31 @@ function sol = FPEX0_simulate(p)
   
   % store running index
   persistent runID
-  
-  % access global configuration
-  global FPEX0
+ 
 
   % initialize or increment running ID
   if isempty(runID), runID = 0; end
   runID = runID + 1;
   
   % extract parameters
-  p_FPdrift     = FPEX0.parameters.extract.FPdrift(p);
-  p_FPdiffusion = FPEX0.parameters.extract.FPdiffusion(p);
-  p_IC          = FPEX0.parameters.extract.iniDist(p);
+  p_FPdrift     = FPEX0setup.Parameters.extract_p_FPdrift(p);
+  p_FPdiffusion = FPEX0setup.Parameters.extract_p_FPdiffusion(p);
+  p_IC          = FPEX0setup.Parameters.extract_p_iniDist(p);
   
   % evaluate initial distribution
-  gridT         = FPEX0.grid.gridT;
-  u0            = FPEX0.functions.iniDist(gridT, p_IC);
+  gridT         = FPEX0setup.Grid.gridT;
+  u0            = FPEX0setup.IniDistFcn(gridT, p_IC);
  
   % retrieve "time" horizon for integrator
-  t0tf          = FPEX0.grid.gridTdot([1 end]);  
+  t0tf          = FPEX0setup.Grid.gridTdot([1 end]);  
   
   % generate right hand side, jacobian
-  driftFcn      = FPEX0.functions.drift;
-  diffusionFcn  = FPEX0.functions.diffusion;
-  h             = FPEX0.grid.h;
-  FPrhs         = FPEX0.functions.make_rhs(h, driftFcn, p_FPdrift, diffusionFcn, p_FPdiffusion);
-  FPjac         = FPEX0.functions.make_jac(h, driftFcn, p_FPdrift, diffusionFcn, p_FPdiffusion);
+  FPrhs         = FPEX0setup.make_rhsFcn(p_FPdrift, p_FPdiffusion);
+  FPjac         = FPEX0setup.make_jacFcn(p_FPdrift, p_FPdiffusion);
     
   % setup integrator and update jacobian therein
-  integrator    = FPEX0.integration.integrator;
-  odeoptions    = FPEX0.integration.updateOptionsJacobian(FPEX0.integration.options, FPjac);
+  integrator    = FPEX0setup.Integration.integrator;
+  odeoptions    = FPEX0setup.Integration.updateJacobian(FPjac);
   
   % make matlab issue an error instead of a warning, if integration fails
   saveWarning = warning('error', 'MATLAB:ode15s:IntegrationTolNotMet'); %#ok<CTPCT> % Undocumented 1st arg set to 'error'
@@ -67,6 +62,6 @@ function sol = FPEX0_simulate(p)
   warning(saveWarning);
   
   % store simulation data (kind of DEBUG)
-  FPEX0.store(runID, timeSIM, success, sol);
+  %FPEX0setup.store(runID, timeSIM, success, sol);
   
 end

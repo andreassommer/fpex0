@@ -21,7 +21,6 @@ function dx = FokkerPlanckODE(t, u, h, driftFcn, driftParams, diffusionFcn, diff
    % If SolvIND is not available, use this function as pure Matlab implementation.
    %
    % Note: - vectorized implementation
-   %       - not accesing global FPEX0 configuration to speed up execution
    %
    % Andreas Sommer, Aug2022
    % andreas.sommer@iwr.uni-heidelberg.de

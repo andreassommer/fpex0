@@ -1,4 +1,7 @@
+function test_FokkerPlanckODE()
 % Simple tester for FokkerPlanckODE
+%#ok<*NBRAK>  
+
 
 % number of grid points and interval length
 N = 2001;
@@ -16,18 +19,17 @@ JPattern = spdiags([e e e], -1:1, N, N);
 % initial distribution, drift, diffusion
 mu    = 130;
 sigma = 3.5;
-u0 = normpdf(xgrid, mu, sigma);
-p  = [];
-driftFcn     = @(t,p) -0.00008 * t ;
-diffusionFcn = @(t,p) 0.000001 * t;
+u0    = normpdf(xgrid, mu, sigma);
+driftFcn     = @(t,p) -0.00008 * p * t;   driftParams     = [ 1 ]; 
+diffusionFcn = @(t,p) 0.000001 * p * t;   diffusionParams = [ 1 ];
 
 % time grid
 tgrid = 1:2:100;
 t0tf = tgrid([1 end]);
 
 % generate function and jacobian handle
-rhsfun   = @(t,u) FokkerPlanckODE(t, u, p, h, driftFcn, diffusionFcn);
-Jacobian = @(t,u) FokkerPlanckODE_dfdu(t, u, p, h, driftFcn, diffusionFcn);
+rhsfun   = @(t,u) FokkerPlanckODE(t, u, h, driftFcn, driftParams, diffusionFcn, diffusionParams);
+Jacobian = @(t,u) FokkerPlanckODE_dfdu(t, u, h, driftFcn, driftParams, diffusionFcn, diffusionParams);
 
 % options and integrator selection
 opts = odeset( 'AbsTol'      , 1e-4     ...
@@ -63,3 +65,7 @@ ylabel('Time t')
 xlabel('Space x')
 zlabel('Value u')
              
+% finito
+return
+
+end
