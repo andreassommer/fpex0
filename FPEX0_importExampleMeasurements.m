@@ -1,25 +1,30 @@
-function FPEX0setup = test_FPEX0_importMeasurements(gridskip)
+function FPEX0setup = FPEX0_importExampleMeasurements(FPEX0setup, gridskip)
 % FPEX0setup = test_FPEX0_importMeasurements()
-% FPEX0setup = test_FPEX0_importMeasurements(gridskip)
+% FPEX0setup = test_FPEX0_importMeasurements(FPEX0setup)
+% FPEX0setup = test_FPEX0_importMeasurements(FPEX0setup, gridskip)
 %
-% Tests import of measurements using example data from file ExampleMeasurements.dat
+% Imports example data from file ExampleMeasurements.dat into an FPEX0setup object.
 %
-% INPUT:  gridskip --> use every n-th grid point for data [default: 1]
+% INPUT:  FPEX0setup --> FPEX0 setup object to be used      [default: new from FPEX0_exampleSetup()]
+%           gridskip --> use every n-th grid point for data [default: 1]
 %
-% OUTPUT: FPEX0setup --> example setup (handle) object
+% OUTPUT: FPEX0setup --> example setup (handle) object with added example measurement data
 %
-% Author:  Andreas Sommer, 2017, 2018, Aug-Sep2022
+% Andreas Sommer, Sep2022
 % andreas.sommer@iwr.uni-heidelberg.de
 % code@andreas-sommer.eu
 %
 
+% use example setup if not specified
+if (nargin < 1)
+   FPEX0setup = FPEX0_exampleSetup();
+end   
+
 % set default gridskip if not specified
-if (nargin==0)
+if (nargin < 2)
    gridskip = 1;  % take every n-th sample only
 end
 
-% generate example Setup
-FPEX0setup = FPEX0_exampleSetup();
 
 % load example data from file
 fprintf('Loading example data . . . ');

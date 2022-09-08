@@ -91,11 +91,40 @@ end
 
 
 
+
 function showDEBUG(T, simVals, measVals, resVals, n, k)
-   fignum = 339;
-   figure(fignum);
-   subplot(1, n, k); plot(T, simVals, 'g.-', T, measVals, 'r.', T, resVals, 'b.');
+   persistent hPlots hAxes hFigure
+   % create figure if needed;
+   if ( isempty(hFigure) || ~isvalid(hFigure) )
+      fignum = 339;
+      hFigure = figure(fignum);
+      hFigure.GraphicsSmoothing = 'off';
+   end
+   % number n has changed (or first plot): reset
+   if (length(hAxes) ~= n)
+      hPlots = cell(n,1); 
+      hAxes = cell(n,1);
+   end
+   % Possibly re-use existing plots for performance
+   hAx = hAxes{k};
+   if ( isempty(hAx) || ~isvalid(hAx) )
+      % no axis available, so generate plot
+      hAxes{k} = subplot(1, n, k); 
+      cla(hAxes{k});          % clear existing content
+      hold(hAxes{k}, 'on');   % hold the following plots
+      hSimVals  = plot(T, simVals , 'g.-');
+      hMeasVals = plot(T, measVals, 'r.');
+      hResVals  = plot(T, resVals , 'b.');
+      hPlots{k} = struct('hSimVals', hSimVals', 'hMeasVals', hMeasVals', 'hResVals', hResVals); % store handles
+   else
+      % plots available, so just update the data
+      hPl = hPlots{k};
+      hPl.hSimVals.XData = T;        hPl.hMeasVals.XData = T;         hPl.hResVals.XData = T;
+      hPl.hSimVals.YData = simVals;  hPl.hMeasVals.YData = measVals;  hPl.hResVals.YData = resVals;
+   end
+   % graphics update via drawnow must be done outside!
 end
 
 
       
+

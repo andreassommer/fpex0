@@ -34,7 +34,7 @@ function FPEX0setup = FPEX0_exampleSetup()
 
 % Generate parameters object
 p0_FPdrift       = [  0.1  ;  +0.1  ];    % linear drift
-p_lb_FPdrift     = [ -0.1  ;  -0.1  ];    % lower bounds
+p_lb_FPdrift     = [ -5.1  ;  -5.1  ];    % lower bounds
 p_ub_FPdrift     = [ 10.1  ;  10.1  ];    % upper bounds
 
 p0_FPdiffusion   = [  0.2  ;   0.1  ];    % linear diffusion
@@ -51,7 +51,7 @@ parametersObj  = FPEX0_class_parameters(  p0_FPdrift,   p0_FPdiffusion,   p0_ini
 
 
 % Generate grid 
-N        = 501;  % space resolution
+N        = 1001;  % space resolution
 betamax  = 20;   % maximum heat rate
 gridT    = linspace( 60,      160,  N );   % x-grid = temperatures
 gridTdot = linspace(  0,  betamax, 20 );   % t-grid = heating rates
