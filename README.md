@@ -1,5 +1,15 @@
-# FPEX0
-## Fokker-Planck-based extrapolation of DSC data to a zero heating rate
+# FPEX0: Fokker-Planck-based extrapolation of DSC data to a zero heating rate
+
+## Cloning the repository from github
+
+This repository contains submodules.
+The easiest way to receive them is to use the `--recurse-submodules` option:
+
+```
+git clone --recurse-submodules git@github.com:andreassommer/fpex0.git
+```
+
+## About FPEX0
 
 This repository gives a Matlab implementation of the FPEX0 method 
 for data-driven de-smearing of DSC signals presented in the paper
@@ -11,7 +21,7 @@ https://doi.org/10.1007/s10973-022-11258-y
 
 
 ## Running the test example.
-0)  Download the repository, start Matlab and change to the folder where FPEX0 was downloaded to.
+0)  Clone the repository, start Matlab and change to the folder where FPEX0 was downloaded to.
 1)	Initialize necessary paths by invoking:   `FPEX0_initPaths();`
 2)	If available, initialize a parallel cluster:   `pool=parpool(n);`  
     where `n` denotes the number of CPU cores available. 
