@@ -36,11 +36,11 @@ The example should converge to a solution within 29 iterations to the following 
 
 
 ## Questions:
-- Why is it so slow?  
+- Why is it slow?  
   Answer: Since the Matlab integrators are not capabale to deliver accurate and consistent sensitivity information,
   which is cruical for optimization, the required derivatives are approximated via external numerical
   differentiation. This requires on the one hand a lot of function evaluations, and on the other hand
-  highly accurate integration tolerances.
+  highly accurate integration tolerances, leading to lenghty computation times.
 - Can it be made faster?  
   Answer: Yes. We have much faster external integrators at hand. Contact us for details.
 - Further questions?  

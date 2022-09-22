@@ -38,15 +38,19 @@ end
 FPEX0paths.DSC204       = fullfile(FPEX0paths.base, './DSC204');       % tools for DSC204 data processing
 FPEX0paths.optionlists  = fullfile(FPEX0paths.base, './optionlists');  % key-value pairs as option lists 
 FPEX0paths.mmtools      = fullfile(FPEX0paths.base, './mmtools');      % miscellaneous matlab tools
-FPEX0paths.measurements = fullfile(FPEX0paths.base, '../DSC204_F1_Phoenix_Messungen'); % paths to measurements
-%FPEX0paths.whatever     = fullfile(FPEX0config.base,'./whatever');     % add whatever path is ggggggggneeded
+%FPEX0paths.measurements = fullfile(FPEX0paths.base, '../DSC204_F1_Phoenix_Messungen'); % paths to measurements
+%FPEX0paths.whatever     = fullfile(FPEX0config.base,'./whatever');     % add whatever path is needed
 
 
-
-% transform the paths to absolute paths
+% transform the paths to absolute paths; issue warning if non-existant path is given
 for xTMPfieldname = fieldnames(FPEX0paths)'
-   xTMPfullpath = what(FPEX0paths.(xTMPfieldname{1}));  % extract path info 
-   FPEX0paths.(xTMPfieldname{1}) = xTMPfullpath.path;   % write back absolute path
+   xTMPfullpath = what(FPEX0paths.(xTMPfieldname{1}));      % extract path info 
+   if isempty(xTMPfullpath)
+      warning('Nonexstiant path ignored: %s', FPEX0paths.(xTMPfieldname{1}))
+      FPEX0paths = rmfield(FPEX0paths, xTMPfieldname{1});   % remove nonexistant path
+      continue
+   end
+   FPEX0paths.(xTMPfieldname{1}) = xTMPfullpath.path;       % write back absolute path
 end
 
 % add the paths
@@ -54,22 +58,13 @@ for xTMPfieldname = fieldnames(FPEX0paths)'
    % extract full pathnames from the fields
    xTMPfieldname = xTMPfieldname{1};             %#ok<FXSET>  % xTMPfiledname is a 1-element cell array
    xTMPfullpath = FPEX0paths.(xTMPfieldname);   % extract path name (may be relative)
-   % check if directory exists
-   if exist(xTMPfullpath,'dir')
-      fprintf('Processing %s \t',xTMPfullpath);
-      % only add path if not yet in path
-      if ~ismember(xTMPfullpath, strsplit(path, pathsep))
-         fprintf('-- Adding to path.\n');
-         addpath(xTMPfullpath);
-      else
-         fprintf('-- Already in path, skipping.\n');
-      end
-   else % path does not exist: warn
-      if isempty(xTMPfullpath)
-         warning('Path for %s is missing. You should update init.m accordingly.', xTMPfieldname);
-      else
-         warning('Path for "%s" does not exist: %s', xTMPfieldname, xTMPfullpath);
-      end
+   fprintf('Processing %s \t\t',xTMPfullpath);
+   % only add path if not yet in path
+   if ~ismember(xTMPfullpath, strsplit(path, pathsep))
+      fprintf('-- Adding to path.\n');
+      addpath(xTMPfullpath);
+   else
+      fprintf('-- Already in path, skipping.\n');
    end
 end
 
