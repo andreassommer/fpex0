@@ -1,7 +1,10 @@
 % FPEX0_initPaths
-% FPEX0_initPaths() Sets paths for FPEX0
+% FPEX0_initPaths() Sets paths for FPEX0 and does some checks.
 %
-% Adjust to your paths in the PATH PREPARATIONS section
+%
+% Adjust this file to your paths in the PATH PREPARATIONS section
+%
+%
 %
 % Copyright 2016-2022
 % Andreas Sommer
@@ -68,6 +71,10 @@ for xTMPfieldname = fieldnames(FPEX0paths)'
    end
 end
 
+% ensure required packages are available
+requiredSubmodules = {{'mmtools', 'makeClosure.m'} ; {'optionlists', 'hasOption.m'}};
+ensureSubmodule(requiredSubmodules);
+
 
 % activate the DSC204 settings
 DSC204_settings('ACTIVATE');
@@ -77,6 +84,36 @@ DSC204_settings('ACTIVATE');
 clear xTMPfullpath 
 clear xTMPfieldname
 clear xTMPselfpath
+
+% finito
+return
+
+
+
+% Helper for required packages
+function ensureSubmodule(requirements)
+   packageMissing = false;
+   for i = 1:length(requirements)
+      packageName = requirements{i}{1};  % requirements is a cell array containing cell arrays x
+      searchFile  = requirements{i}{2};  % where x{1} is the package name and x{2} is an indicator file to search for
+      packageMissing = checkSubmodule(packageName, searchFile) | packageMissing;  % the | (or) acccumulates missing
+   end
+   if packageMissing
+      error('One or more required packages missing (listed above). See documentation how to clone FPEX0 repository.');
+   end
+end
+
+function packageMissing = checkSubmodule(modulename, testfile)
+   if isempty(which(testfile))
+      fprintf('\nMISSING SUBMODULE\n');
+      fprintf('The folling submodule is not accessible:  --> %s <--\n', modulename);
+      fprintf('Please clone the FPEX0 package from github using the "--recurse-submodules" flag (see README.md).\n')
+      fprintf('Alternatively, please clone/download package "%s" manually from github.\n', modulename);
+      packageMissing = true;
+   else
+      packageMissing = false;
+   end
+end
 
 
  

@@ -1,13 +1,23 @@
 # FPEX0: Fokker-Planck-based extrapolation of DSC data to a zero heating rate
 
+
 ## Cloning the repository from github
 
-This repository contains submodules.
-The easiest way to receive them is to use the `--recurse-submodules` option:
+This repository requires the following submodules (also available on github):
+- mmtools
+- optionlists
+
+The easiest way to receive them is to use the `--recurse-submodules` option when cloning FPEX0:
 
 ```
 git clone --recurse-submodules git@github.com:andreassommer/fpex0.git
 ```
+
+Alternatively, you can download the required submodules manually from github into subfolders 
+of the FPEX0 directory.
+
+
+
 
 ## About FPEX0
 
