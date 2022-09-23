@@ -31,7 +31,7 @@ https://doi.org/10.1007/s10973-022-11258-y
 
 
 ## Running the test example.
-0)  Clone the repository, start Matlab and change to the folder where FPEX0 was downloaded to.
+0) Clone the repository, start Matlab and change to the folder where FPEX0 was downloaded to.
 1)	Initialize necessary paths by invoking:   `FPEX0_initPaths();`
 2)	If available, initialize a parallel cluster:   `pool=parpool(n);`  
     where `n` denotes the number of CPU cores available. 
@@ -40,8 +40,12 @@ https://doi.org/10.1007/s10973-022-11258-y
 
 The example uses Matlab's `lsqnonlin` for optimization; other optimizers are available (see `FPEX0_fit.m`). 
 
-The example should converge to a solution within 29 iterations to the following solution:  
-`x = [-0.9555 0.0328 0.2861 3.4172 2.6310 43.0438 131.8116 3.7368 0.1825]`
+The example should converge within approx 20 iterations close to the following point:  
+`x = [-0.9555 0.0328 0.2861 3.4172 2.5732 43.0439 131.8116 3.6591 0.1861]`
+
+Depending on the problem and chosen accuracies, the optimization might stop due to different reasons.
+A (close to) optimal solution is found, if the so called "first-order optimality" measure is small
+(ideally zero, but when using FD approximations in FPEX0, values less than 10 are acceptable).
 
 
 

@@ -27,41 +27,16 @@ function varargout = frasersuzuki(x,p)
    % CONSTRAINTS:  sr > 0,  sr != 1,  1 < r < inf, often: r=2.
    %               No check is done on constraints!
    %
-   % Call without arguments to trigger function initialization.
+   % This is a symbolic-free implementation. See the frasersuzuki_symbolic.m file to learn
+   % how to easily generate initial distribution functions with automatic derivative generation
+   % if Matlab's Symbolic Math Toolbox is available.
    %
-   % Andreas Sommer, Aug2017, Aug2022
+   % Andreas Sommer, Aug2017, Aug2022, Sep2022
    % andreas.sommer@iwr.uni-heidelberg.de
    % code@andreas-sommer.eu
 
-   persistent sym_dfdx sym_dfdr sym_dfdh sym_dfdz sym_dfdwr sym_dfdsr sym_f
-   persistent fun_dfdx fun_dfdr fun_dfdh fun_dfdz fun_dfdwr fun_dfdsr fun_f
-   persistent initialized
-   
-   % Generate derivatives ones
-   if isempty(initialized) || (nargin == 0)
-      fprintf('frasersuzuki.m: Initializing partial derivatives... ');
-      syms sym_r sym_h sym_z sym_wr sym_sr sym_x 
-      sym_f = symfun( sym_h .* exp(-(log(sym_r))./(log(sym_sr).^2) * log(((sym_x-sym_z).*(sym_sr.^2-1))./(sym_wr.*sym_sr) + 1).^2)  , ...
-                      [sym_x sym_r sym_h sym_z sym_wr sym_sr]) ;  % order of variables
-      sym_dfdr  = diff(sym_f,sym_r);
-      sym_dfdh  = diff(sym_f,sym_h);
-      sym_dfdz  = diff(sym_f,sym_z);
-      sym_dfdwr = diff(sym_f,sym_wr);
-      sym_dfdsr = diff(sym_f,sym_sr);
-      sym_dfdx  = diff(sym_f,sym_x);
-      fprintf('Transforming into matlab functions... ');
-      fun_f     = matlabFunction(sym_f);
-      fun_dfdr  = matlabFunction(sym_dfdr);
-      fun_dfdh  = matlabFunction(sym_dfdh);
-      fun_dfdz  = matlabFunction(sym_dfdz);
-      fun_dfdwr = matlabFunction(sym_dfdwr);
-      fun_dfdsr = matlabFunction(sym_dfdsr);
-      fun_dfdx  = matlabFunction(sym_dfdx);
-      fprintf('Done!\n');
-      initialized = true;
-      if (nargin==0), return; end;
-   end
 
+ 
    % accessors
    r  = p(1);
    h  = p(2);
@@ -74,40 +49,109 @@ function varargout = frasersuzuki(x,p)
    nonzeroIDX = ( x < zeropos );
    xnonzero   = x(nonzeroIDX);
    
-   % first output argument: nominal values
-   y = zeros(size(x));
-   y(nonzeroIDX) = fun_f(xnonzero,r,h,z,wr,sr);
-   varargout{1} = y;
+
    
+   % common subexpressions (for f and df)
+   Xmz        = (xnonzero-z);
+   sr2m1      = (sr^2-1);
+   Xmz_sr2m1_by_wrsr_p1 = (Xmz*sr2m1)/(wr*sr) + 1;
+   log_X      = log( Xmz_sr2m1_by_wrsr_p1 );
+   log_X_sq   = log_X .^ 2;
+   log_sr2    = log(sr)^2;
+   log_r_by_log_sr2 = log(r) / log_sr2;
+   exp_X      = exp(- log_X_sq * log_r_by_log_sr2);
+   h_exp_X    = h * exp_X;
+
+
+   % FIRST OUTPUT: nominal values
+   y = zeros(size(x));
+   y(nonzeroIDX) = h_exp_X;
+   varargout{1} = y;
+
+
    % derivatives w.r.t. p requested?
    if (nargout >= 2)
-      % derivative w.r.t. r
-      dydr = zeros(length(x),1);
-      dydr(nonzeroIDX) = fun_dfdr(xnonzero,r,h,z,wr,sr);
-      % derivative w.r.t. h
-      dydh = zeros(length(x),1);
-      dydh(nonzeroIDX) = fun_dfdh(xnonzero,r,h,z,wr,sr);
-      % derivative w.r.t. z
-      dydz = zeros(length(x),1);
-      dydz(nonzeroIDX) = fun_dfdz(xnonzero,r,h,z,wr,sr);
-      % derivative w.r.t. wr
-      dydwr = zeros(length(x),1);
-      dydwr(nonzeroIDX) = fun_dfdwr(xnonzero,r,h,z,wr,sr);
-      % derivative w.r.t. sr
-      dydsr = zeros(length(x),1);
-      dydsr(nonzeroIDX) = fun_dfdsr(xnonzero,r,h,z,wr,sr);
+
+      % common subexpressions (for df only)
+      h_exp_X_log_X = h_exp_X .* log_X;
+      h_exp_X_log_X_sq = h_exp_X .* log_X_sq;
+      log_sr2_X = log(sr)^2 * Xmz_sr2m1_by_wrsr_p1;
+      
+      % derivates w.r.t. parameters (computed only at non-zero values)
+      dfdr  = - (h_exp_X_log_X_sq ) / (r*log(sr)^2);
+      dfdh  = exp_X;
+      dfdz  = (2*h_exp_X_log_X * log(r)*sr2m1)          ./ (sr*wr * log_sr2_X );
+      dfdwr = (2*h_exp_X_log_X * log(r)*sr2m1 .* Xmz)   ./ (sr*wr^2*log_sr2_X );
+      dfdsr = h_exp_X .* (   (2*log_X_sq * log(r)) / (sr*log(sr)^3)    ...
+                           - (2*log_X    * log(r) .* ( 2*Xmz/wr - (sr2m1 * Xmz) / (sr^2*wr))) ./ log_sr2_X  );
+   
+      % transfer into output variables
+      dydr  = zeros(length(x),1);  dydr(nonzeroIDX)  = dfdr; 
+      dydh  = zeros(length(x),1);  dydh(nonzeroIDX)  = dfdh;
+      dydz  = zeros(length(x),1);  dydz(nonzeroIDX)  = dfdz; 
+      dydwr = zeros(length(x),1);  dydwr(nonzeroIDX) = dfdwr;
+      dydsr = zeros(length(x),1);  dydsr(nonzeroIDX) = dfdsr;
       dydp = [dydr , dydh , dydz , dydwr , dydsr ];
       varargout{2} = dydp;
    end
+   
+   
    % derivatives w.r.t. x requested?
    if (nargout >= 3)
-      dydx = zeros(length(x),1);
-      dydx(nonzeroIDX) = fun_dfdx(xnonzero,r,h,z,wr,sr);
+      % derivates w.r.t. x (computed only at non-zero values)
+      dfdx  = -(2*h_exp_X_log_X * log(r)*(sr^2 - 1))    ./ (sr*wr * log_sr2_X );
+      % transfer into output variables
+      dydx = zeros(length(x),1);  dydx(nonzeroIDX) = dfdx;
       varargout{3} = dydx;
    end
-  
+
+   
+   
+   % finito
+   return
+   
+   
+   
+   %% Helper functions (nominal value and derivatives, not used)
+%    function val = fun_f(x)
+%       val =  h * exp(-(log(r))/(log(sr)^2) * log( ((x-z)*(sr^2-1))/(wr*sr) + 1).^2 );
+%    end
+%    function val = fun_dfdr(x)
+%       val = -(h*exp(-(log(((sr^2-1)*(x-z))/(sr*wr) + 1).^2*log(r))/log(sr)^2)  ...
+%                .*log(((sr^2-1)*(x-z))/(sr*wr)+1).^2) / (r*log(sr)^2);
+%    end
+%    function val = fun_dfdh(x)
+%       val = exp( -(log(((sr^2 - 1)*(x - z))/(sr*wr) + 1).^2*log(r)) / log(sr)^2 );
+%    end
+%    function val = fun_dfdz(x)
+%       val = (2*h*exp(-(log(((sr^2 - 1)*(x - z))/(sr*wr) + 1).^2*log(r))/log(sr)^2)   ...
+%                .*log(((sr^2 - 1)*(x - z))/(sr*wr) + 1)                              ...
+%                 *log(r)*(sr^2 - 1))                                                 ...
+%             ./ (sr*wr*log(sr)^2 * (((sr^2 - 1)*(x - z))/(sr*wr) + 1));
+%    end
+%    function val = fun_dfdwr(x)
+%       val = (2*h*exp(-(log(((sr^2 - 1)*(x - z))/(sr*wr) + 1).^2*log(r)) / log(sr)^2) ...
+%                .*log(((sr^2 - 1)*(x - z))/(sr*wr) + 1)                              ...
+%                 *log(r)*(sr^2 - 1)                                                  ...
+%                .*(x - z))                                                           ...
+%             ./(sr*wr^2*log(sr)^2*(((sr^2 - 1)*(x - z))/(sr*wr) + 1));
+%    end
+%    function val = fun_dfdsr(x)
+%       val = h*exp(-(log(((sr^2 - 1)*(x - z))/(sr*wr) + 1).^2*log(r))/log(sr)^2)               ...
+%             .*( (2*log(((sr^2 - 1)*(x - z))/(sr*wr) + 1).^2 * log(r)) / (sr*log(sr)^3)       ...
+%                 - (2*log(((sr^2 - 1)*(x - z))/(sr*wr) + 1)                       ...
+%                    .*log(r).*((2*(x - z))/wr - ((sr^2 - 1)*(x - z))/(sr^2*wr)))   ...
+%                    ./ ( log(sr)^2*(((sr^2 - 1)*(x - z))/(sr*wr) + 1))            ...
+%               );
+%    end
+%    function val = fun_dfdx(x)
+%       val = -(2*h*exp(-(log(((sr^2 - 1)*(x - z))/(sr*wr) + 1).^2*log(r))/log(sr)^2)*log(((sr^2 - 1)*(x - z))/(sr*wr) + 1)*log(r)*(sr^2 - 1))   ...
+%              ./ (sr*wr*log(sr)^2*(((sr^2 - 1)*(x - z))/(sr*wr) + 1));
+%    end
+      
    
 end
+
 
 
 
