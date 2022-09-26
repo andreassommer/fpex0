@@ -57,6 +57,14 @@ A (close to) optimal solution is found, if the so called "first-order optimality
   highly accurate integration tolerances, leading to lenghty computation times.
 - Can it be made faster?  
   Answer: Yes. We have much faster external integrators at hand. Contact us for details.
+- Can I do anything to make it faster?  
+  There are several possibilities:  
+  - Reduce the integration tolerances, e.g. set reltol = 1e-8 and abstol = 1-e12  
+  - Change finite difference approximation in the optimizert settings to "forward"
+  - Use a coarser temperature grid
+  Note that the aforementioned tricks will negatively impact the optimizer's optimality check, 
+  making it hard to detect a "mathematically clean" optimum, but should still converge.
 - Further questions?  
-  Contact us!  By email via andreas.sommer@iwr.uni-heidelberg.de
-  
+  Contact us!  By email via andreas.sommer@iwr.uni-heidelberg.de or code@andreas-sommer.eu.
+
+

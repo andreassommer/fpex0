@@ -1,6 +1,6 @@
 function varargout = frasersuzuki(x,p)
-   % y = frasersuzuki(x,p)
-   %
+   %               y = frasersuzuki(x,p)
+   %       [y, dydp] = frasersuzuki(x,p)
    % [y, dydp, dydx] = frasersuzuki(x,p)
    %
    % Fraser-Suzuki function (log-normal for r=2, skewed gaussian)
@@ -49,8 +49,6 @@ function varargout = frasersuzuki(x,p)
    nonzeroIDX = ( x < zeropos );
    xnonzero   = x(nonzeroIDX);
    
-
-   
    % common subexpressions (for f and df)
    Xmz        = (xnonzero-z);
    sr2m1      = (sr^2-1);
@@ -61,13 +59,11 @@ function varargout = frasersuzuki(x,p)
    log_r_by_log_sr2 = log(r) / log_sr2;
    exp_X      = exp(- log_X_sq * log_r_by_log_sr2);
    h_exp_X    = h * exp_X;
-
-
+   
    % FIRST OUTPUT: nominal values
    y = zeros(size(x));
    y(nonzeroIDX) = h_exp_X;
    varargout{1} = y;
-
 
    % derivatives w.r.t. p requested?
    if (nargout >= 2)
@@ -92,16 +88,20 @@ function varargout = frasersuzuki(x,p)
       dydwr = zeros(length(x),1);  dydwr(nonzeroIDX) = dfdwr;
       dydsr = zeros(length(x),1);  dydsr(nonzeroIDX) = dfdsr;
       dydp = [dydr , dydh , dydz , dydwr , dydsr ];
+      
       varargout{2} = dydp;
    end
    
    
    % derivatives w.r.t. x requested?
    if (nargout >= 3)
+      
       % derivates w.r.t. x (computed only at non-zero values)
       dfdx  = -(2*h_exp_X_log_X * log(r)*(sr^2 - 1))    ./ (sr*wr * log_sr2_X );
+      
       % transfer into output variables
       dydx = zeros(length(x),1);  dydx(nonzeroIDX) = dfdx;
+      
       varargout{3} = dydx;
    end
 
@@ -110,9 +110,24 @@ function varargout = frasersuzuki(x,p)
    % finito
    return
    
+
+end
+
+
+
+
+% Code for getting the symbolic derivatives
+% syms x r h z wr sr
+% f = h .* exp(-(log(r))./(log(sr).^2) * log(((x-z)*(sr.^2-1))./(wr.*sr) + 1).^2);
+% dfdx  = diff(f,x);
+% dfdr  = diff(f,r);
+% dfdh  = diff(f,h);
+% dfdz  = diff(f,z);
+% dfdwr = diff(f,wr);
+% dfdsr = diff(f,sr);
+
    
-   
-   %% Helper functions (nominal value and derivatives, not used)
+% Helper functions (nominal value and derivatives, not used)
 %    function val = fun_f(x)
 %       val =  h * exp(-(log(r))/(log(sr)^2) * log( ((x-z)*(sr^2-1))/(wr*sr) + 1).^2 );
 %    end
@@ -150,18 +165,3 @@ function varargout = frasersuzuki(x,p)
 %    end
       
    
-end
-
-
-
-
-% Code for getting the symbolic derivatives
-% syms x r h z wr sr
-% f = h .* exp(-(log(r))./(log(sr).^2) * log(((x-z)*(sr.^2-1))./(wr.*sr) + 1).^2);
-% dfdx  = diff(f,x);
-% dfdr  = diff(f,r);
-% dfdh  = diff(f,h);
-% dfdz  = diff(f,z);
-% dfdwr = diff(f,wr);
-% dfdsr = diff(f,sr);
-

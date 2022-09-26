@@ -1,8 +1,9 @@
-function varargout = haarhoffvdlinde(x,p)
-   %         y = haarhoffvdlinde(x,p)
-   % [y, dydp] = haarhoffvdlinde(x,p)
+function varargout = haarhoffvdlinde_symbolic(x,p)
+   %               y = haarhoffvdlinde(x,p)
+   %       [y, dydp] = haarhoffvdlinde(x,p)
+   % [y, dydp, dydx] = haarhoffvdlinde(x,p)
    %
-   % Haarhoff-Van der Linde function, also provides partial derivatives.
+   % Haarhoff-Van der Linde function, also provides partial derivatives. SYMBOLIC VERSION
    %
    % See 
    %  Haarhoff, Van der Linde 1966: Concentration dependence of Elution Curves in Non-Ideal Gas Chromatography
@@ -71,16 +72,12 @@ function varargout = haarhoffvdlinde(x,p)
 
    
    % derivatives requested?
-   if (nargout > 1)
+   if (nargout >= 2)
       % derivatives w.r.t. parameters a0, a1, a2, a3
       dfda0 = fun_dfda0(x,a0,a1,a2,a3);
       dfda1 = fun_dfda1(x,a0,a1,a2,a3);
       dfda2 = fun_dfda2(x,a0,a1,a2,a3);
       dfda3 = fun_dfda3(x,a0,a1,a2,a3);
-      % derivative w.r.t. x
-      % dfdx() = fun_dfdx(x,a0,a1,a2,a3);
-      % DO NOT INCLUDE dfdx IN RESULT VECTOR!
-      % Why? The machinery around it requires that
       
       % assemble output
       dfda0 = reshape(dfda0, [], 1);
@@ -89,5 +86,12 @@ function varargout = haarhoffvdlinde(x,p)
       dfda3 = reshape(dfda3, [], 1);
       dydp = [dfda0 , dfda1 , dfda2 , dfda3];
       varargout{2} = dydp;
+   end
+   
+   if (nargout >= 3)
+      % derivative w.r.t. x
+      dfdx = fun_dfdx(x,a0,a1,a2,a3);
+      dfdx = reshape(dfdx, [], 1);
+      varargout{3} = dfdx;
    end
    
