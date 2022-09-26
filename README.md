@@ -60,10 +60,12 @@ A (close to) optimal solution is found, if the so called "first-order optimality
 - Can I do anything to make it faster?  
   There are several possibilities:  
   - Reduce the integration tolerances, e.g. set reltol = 1e-8 and abstol = 1-e12  
-  - Change finite difference approximation in the optimizert settings to "forward"
+  - Change finite difference approximation in the optimizer settings to "forward"
   - Use a coarser temperature grid
   Note that the aforementioned tricks will negatively impact the optimizer's optimality check, 
-  making it hard to detect a "mathematically clean" optimum, but should still converge.
+  making it hard to detect a "mathematically clean" optimum by testing the first-order optimality,
+  but should still converge to a "good" fit.  
+  This fit can then be re-evaluated with finer grids, tighter tolerances, etc., to show optimality (if required).
 - Further questions?  
   Contact us!  By email via andreas.sommer@iwr.uni-heidelberg.de or code@andreas-sommer.eu.
 
