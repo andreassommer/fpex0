@@ -112,10 +112,13 @@ function showDEBUG(T, simVals, measVals, resVals, n, k)
       hAxes{k} = subplot(1, n, k); 
       cla(hAxes{k});          % clear existing content
       hold(hAxes{k}, 'on');   % hold the following plots
-      hSimVals  = plot(T, simVals , 'g.-');
-      hMeasVals = plot(T, measVals, 'r.');
-      hResVals  = plot(T, resVals , 'b.');
+      hSimVals  = plot(T, simVals , 'g.-', 'DisplayName', 'Simulation' );
+      hMeasVals = plot(T, measVals, 'r.' , 'DisplayName', 'Measurement');
+      hResVals  = plot(T, resVals , 'b.' , 'DisplayName', 'Residual'   );
       hPlots{k} = struct('hSimVals', hSimVals', 'hMeasVals', hMeasVals', 'hResVals', hResVals); % store handles
+      if (k == n)  % add a legend on last figure
+         legend('Location', 'Best');
+      end
    else
       % plots available, so just update the data
       hPl = hPlots{k};

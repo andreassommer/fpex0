@@ -207,8 +207,8 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
       if strcmp(state,'iter')
          FPEX0setup.debugMode.calcresvec = true;
          FPEX0_calcresvec(FPEX0setup, x); % generates graphic output
-         drawnow()
          FPEX0setup.debugMode.calcresvec = false;
+         drawnow('limitrate')             % expose the graphic update
       end
    end
 

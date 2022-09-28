@@ -51,7 +51,7 @@ parametersObj  = FPEX0_class_parameters(  p0_FPdrift,   p0_FPdiffusion,   p0_ini
 
 
 % Generate grid 
-N        = 1001;  % space resolution
+N        = 501;  % space resolution
 betamax  = 20;   % maximum heat rate
 gridT    = linspace( 60,      160,  N );   % x-grid = temperatures
 gridTdot = linspace(  0,  betamax, 20 );   % t-grid = heating rates
