@@ -13,6 +13,8 @@ function DSCsample = DSC204_addCP(DSCsample, DSCreference, Tmin, Tmax, signalsou
 %
 % OUTPUT:   DSC204data --> DSCsample structure with additional field cp.
 %
+% NOTE:   DSCsample and DSCreference must be 0-corrected already.
+%
 % Author:  Andreas Sommer, Apr2017, Oct2017, Aug2022
 % andreas.sommer@iwr.uni-heidelberg.de
 % code@andreas-sommer.eu

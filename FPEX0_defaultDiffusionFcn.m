@@ -7,7 +7,6 @@ function [fval, dfdp] = FPEX0_defaultDiffusionFcn(t,p,betamax)
 % INPUT:      t --> current time / heating rate
 %             p --> diffusion parameter vector (diffusion-parameters only!)
 %       betamax --> maximum time / heat rate (used for ensuring non-negativity)
-%                   (optional, default = 100);
 % 
 % OUTPUT   fval --> function value for diffusion
 %          dfdp --> derivative w.r.t. p

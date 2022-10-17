@@ -46,10 +46,11 @@ methods
    
    % Updater: Jacobian only
    function opts = updateJacobian(obj, jacobianFcn)
-      obj.options.Jacobian = jacobianFcn;
-      opts = obj.options;
+      opts = obj.options;            % make copy of options
+      opts.Jacobian = jacobianFcn;   % update JacobianFcn in copy
+      obj.options = opts;            % save copy in options
    end
-      
+
    
    
 end
