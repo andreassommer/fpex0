@@ -1,8 +1,8 @@
-function [fval, dfdp] = FPEX0_defaultDiffusionFcn(t,p,betamax)
-% fval = FPEX0_defaultDiffusionFcn(t,p,betamax)
-% [fval, dfdp] = FPEX0_defaultDiffusionFcn(t,p,betamax)
+function [fval, dfdp] = FPEX0_diffusionFcn(t,p,betamax)
+% fval = FPEX0_diffusionFcn(t,p,betamax)
+% [fval, dfdp] = FPEX0_diffusionFcn(t,p,betamax)
 %
-% Default diffusion function used in FPEX0
+% Linear diffusion function used in FPEX0
 %
 % INPUT:      t --> current time / heating rate
 %             p --> diffusion parameter vector (diffusion-parameters only!)
@@ -11,7 +11,7 @@ function [fval, dfdp] = FPEX0_defaultDiffusionFcn(t,p,betamax)
 % OUTPUT   fval --> function value for diffusion
 %          dfdp --> derivative w.r.t. p
 %
-
+%
 % Author:  Andreas Sommer, Aug-Sep2022
 % andreas.sommer@iwr.uni-heidelberg.de
 % code@andreas-sommer.eu

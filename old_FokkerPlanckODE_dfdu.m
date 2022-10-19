@@ -49,8 +49,11 @@ function dfdu = FokkerPlanckODE_dfdu(t, u, h, driftFcn, driftParams, diffusionFc
    end
    
    % evaluate drift and diffusion
-   a = driftFcn(t, driftParams);
-   D = diffusionFcn(t, diffusionParams);
+   %a = driftFcn(t, driftParams);
+   %D = diffusionFcn(t, diffusionParams);
+   betamax = 20; %%%DEBUG
+   a = FPEX0_driftFcn(t, driftParams);
+   D = FPEX0_diffusionFcn(t, diffusionParams, betamax);
    
    % assemble the jacobian
    dfdu = -a * A / (2*h)  +  D * B / h^2;

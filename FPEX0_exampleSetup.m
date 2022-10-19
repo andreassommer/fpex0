@@ -58,9 +58,7 @@ gridTdot = linspace(  0,  betamax, 20 );   % t-grid = heating rates
 gridObj  = FPEX0_class_grid(gridT, gridTdot);
 
 
-% set the FP functions and the initial distribution
-FPdriftFcn     = @(t,p) FPEX0_defaultDriftFcn(t,p);
-FPdiffusionFcn = @(t,p) FPEX0_defaultDiffusionFcn(t,p,betamax);
+% set the initial distribution
 IniDistFcn     = @(x,p) frasersuzuki(x,p);
 
 
@@ -69,9 +67,8 @@ integrationObj = FPEX0_class_integration();
 
 
 % generate the setup object
-FPEX0setup = FPEX0_class_setup(gridObj, parametersObj, integrationObj, FPdriftFcn, FPdiffusionFcn, IniDistFcn);
-
-
+FPEX0setup = FPEX0_class_setup(gridObj, parametersObj, integrationObj, IniDistFcn, ...
+                               'enforceNonNeg', false);    % false is default, just to show the option 
 
 
 %

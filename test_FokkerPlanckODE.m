@@ -1,4 +1,4 @@
-function test_FokkerPlanckODE()
+function varargout = test_FokkerPlanckODE()
 % Simple tester for FokkerPlanckODE
 %#ok<*NBRAK>  
 
@@ -19,17 +19,27 @@ JPattern = spdiags([e e e], -1:1, N, N);
 % initial distribution, drift, diffusion
 mu    = 130;
 sigma = 3.5;
-u0    = normpdf(xgrid, mu, sigma);
-driftFcn     = @(t,p) -0.00008 * p * t;   driftParams     = [ 1 ]; 
-diffusionFcn = @(t,p) 0.000001 * p * t;   diffusionParams = [ 1 ];
+u0    = reshape( normpdf(xgrid, mu, sigma) , [], 1 );
+driftParams     = [ 1e-6  -1e-4 ]; 
+diffusionParams = [ 1e-6  1e-4 ];
 
-% time grid
-tgrid = 1:2:100;
+% time grid ( = heating rates)
+betamax = 100;
+tgrid = 1:2:betamax;
 t0tf = tgrid([1 end]);
 
 % generate function and jacobian handle
-rhsfun   = @(t,u) FokkerPlanckODE(t, u, h, driftFcn, driftParams, diffusionFcn, diffusionParams);
-Jacobian = @(t,u) FokkerPlanckODE_dfdu(t, u, h, driftFcn, driftParams, diffusionFcn, diffusionParams);
+rhsfun   = @(t,u) FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax);
+Jacobian = @(t,u) FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, false, true, false);
+
+% test/compare jacobians
+% JacobianOLD = @(t,u) old_FokkerPlanckODE_dfdu(t, u, h, [], driftParams, [], diffusionParams);
+% snorm = @(j) norm(j(:));
+% jOLD = JacobianOLD(0, u0);
+% jNEW = Jacobian(0, u0);
+% jDIFF = full(max(max(abs(jOLD-jNEW))));
+% fprintf('\n||jOLD||=%g  ||jNEW||=%g   Difference in Jacobian: %g\n\n', snorm(jOLD), snorm(jNEW), jDIFF);
+
 
 % options and integrator selection
 opts = odeset( 'AbsTol'      , 1e-4     ...
@@ -64,7 +74,12 @@ view([6,27])
 ylabel('Time t')
 xlabel('Space x')
 zlabel('Value u')
-             
+        
+% output requestes?
+if (nargout > 0)
+   varargout{1} = u;
+end
+
 % finito
 return
 

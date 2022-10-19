@@ -12,6 +12,7 @@ function fitsol = FPEX0_exampleFit()
 %   * make sure that the paths have been set by invoking FPEX0_initPaths()
 %   * initialize a parallel computing pool, e.g. via parpool(8) if you have 8 CPU cores
 %
+%
 % Andreas Sommer, Sep2022
 % andreas.sommer@iwr.uni-heidelberg.de
 % code@andreas-sommer.eu

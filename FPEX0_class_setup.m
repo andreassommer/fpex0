@@ -5,13 +5,11 @@ classdef FPEX0_class_setup < handle
 %
 % CONSTRUCTOR:
 %
-%    setup = FPEX0_class_setup(GridObj, ParametersObj, IntegrationObj, FPdriftFcn, FPdiffusionFcn, IniDistFcn)
+%    setup = FPEX0_class_setup(GridObj, ParametersObj, IntegrationObj, IniDistFcn)
 %
 % INPUT:    GridObj --> grid object of class FPEX0_class_grid
 %     ParametersObj --> parameters object of class FPEX0_class_parameters
 %    IntegrationObj --> integration settings object of class FPEX0_class_integration
-%        FPdriftFcn --> function handle to Fokker-Planck drift
-%    FPdiffusionFcn --> function handle to Fokker-Planck diffusion
 %        IniDistFcn --> function handle to initial distribution
 %
 % OUTPUT:   setup --> structure containing configuration
@@ -28,55 +26,58 @@ properties (SetAccess = private)
    Parameters
    Measurements
    Integration
-
+   IniDistFcn              % initial distribution function y0
+   FPODE_jacPattern        % sparsity pattern of FPODE
+   betamax                 % maximum heating rate
+   enforceNonNeg = false   % increases integration time, but ensures nonnegative FP landscape
    Storage = struct();
-   
-   FPdriftFcn
-   FPdiffusionFcn
-   IniDistFcn
-   
-   FPODE_jacPattern
-         
 end
 
 properties (Access = public)
-   debugMode = struct( 'calcresvec' , true );
+   debugMode = struct( 'calcresvec'     , false , ...
+                       'storeSimulation', false );
 end
-
 
 methods
    
    
    % CONSTRUCTOR    
-   function setup = FPEX0_class_setup(GridObj, ParametersObj, IntegrationObj, FPdriftFcn, FPdiffusionFcn, IniDistFcn)
+   function setup = FPEX0_class_setup(GridObj, ParametersObj, IntegrationObj, IniDistFcn, varargin)
       setup.Grid           = GridObj;
       setup.Parameters     = ParametersObj;
       setup.Integration    = IntegrationObj;
-      setup.FPdriftFcn     = FPdriftFcn;
-      setup.FPdiffusionFcn = FPdiffusionFcn;
       setup.IniDistFcn     = IniDistFcn;
+      
+      % walk through additional arguments
+      if hasOption(varargin, 'enforceNonNeg'), setup.enforceNonNeg = getOption(varargin, 'enforceNonNeg'); end
+
+      % transfer the maximum heat rate from Grid
+      setup.betamax = max(setup.Grid.gridTdot);
       
       % generate and store the jacobian pattern (does not change as grid does not change)
       setup.FPODE_jacPattern = setup.make_FPODE_jacpattern(setup.Grid.N);
       
       % update the integration options
-      opts = odeset( 'JPattern'    , setup.FPODE_jacPattern  ...
-                   , 'NonNegative' , 1:setup.Grid.N          );
+      opts = odeset( 'JPattern' , setup.FPODE_jacPattern );
+      if (setup.enforceNonNeg)
+         opts.NonNegative = 1:setup.Grid.N;
+      end
       setup.Integration.updateOptions(opts);
+      
    end
    
    
    
    % GENERATOR: Right hand side function
-   function rhsFcn = make_rhsFcn(obj, p_FPdrift, p_FPdiffusion)
-      rhsFcn = @(t,u) FokkerPlanckODE(t, u, obj.Grid.h, obj.FPdriftFcn, p_FPdrift, obj.FPdiffusionFcn, p_FPdiffusion);
+   function rhsFcn = make_FPrhsFcn(obj, p_FPdrift, p_FPdiffusion)
+      rhsFcn = @(t,u) FokkerPlanckODE(t, u, obj.Grid.h, p_FPdrift, p_FPdiffusion, obj.betamax);
    end
    
    
    
    % GENERATOR: Jacobian function
-   function jacFcn = make_jacFcn(obj, p_FPdrift, p_FPdiffusion)
-      jacFcn = @(t,u) FokkerPlanckODE_dfdu(t, u, obj.Grid.h, obj.FPdriftFcn, p_FPdrift, obj.FPdiffusionFcn, p_FPdiffusion);
+   function jacFcn = make_FPjacFcn(obj, p_FPdrift, p_FPdiffusion)
+      jacFcn = @(t,u) FokkerPlanckODE(t, u, obj.Grid.h, p_FPdrift, p_FPdiffusion, obj.betamax, false, true, false);
    end
    
    
@@ -171,15 +172,6 @@ end
 end
 
 
-
-
-% setup debug modes
-% % FPEX0.debugMode.calcresvec = true;
-% % FPEX0.debugMode.simulate   = false;
-
-   
-% simulation data
-% FPEX0.sim.sol = NaN;   % will be filled by FPEX0_simulate
 
 
 

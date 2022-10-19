@@ -19,9 +19,6 @@ classdef FPEX0_class_grid < handle
    properties (SetAccess = private)
       gridT       % x-grid = temperatures
       gridTdot    % t-grid = heating rates
-   end
-   
-   properties (Dependent = true)
       N           % number of grid points
       h           % grid step size
    end
@@ -29,19 +26,12 @@ classdef FPEX0_class_grid < handle
 
    methods
       
-      % getter functions
-      function N = get.N(obj)
-         N = length(obj.gridT);
-      end
-      
-      function h = get.h(obj)
-         h = ( obj.gridT(end) - obj.gridT(1) ) / obj.N;
-      end
-      
       % CONSTRUCTOR
       function obj = FPEX0_class_grid(gridT, gridTdot)
          obj.gridT    = reshape( gridT   , [], 1);  % ensure it's a single column
          obj.gridTdot = reshape( gridTdot, [], 1);  % ensure it's a single column
+         obj.N        = length(obj.gridT);                            % number of grid points
+         obj.h        = ( obj.gridT(end) - obj.gridT(1) ) / obj.N;    % grid step size
       end
       
    end

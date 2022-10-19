@@ -1,8 +1,8 @@
-function [fval, dfdp] = FPEX0_defaultDriftFcn(t,p)
-% fval = FPEX0_defaultDriftFcn(t,p)
-% [fval, dfdp] = FPEX0_defaultDriftFcn(t,p)
+function [fval, dfdp] = FPEX0_driftFcn(t,p)
+% fval = FPEX0_driftFcn(t,p)
+% [fval, dfdp] = FPEX0_driftFcn(t,p)
 %
-% Default drift function used in FPEX0
+% Linear drift function used in FPEX0
 %
 % INPUT:   t --> current time / heating rate
 %          p --> drift parameter vector (drift-parameters only!)

@@ -2,6 +2,9 @@
 
 FPEX0setup = FPEX0_exampleSetup();
 
+% integrator options
+FPEX0setup.Integration.options.Stats = 'on';
+
 % fraser suzuki parametrization
 r  =     2;
 h  =    40;
@@ -11,17 +14,16 @@ sr =   0.1;
 p_IC = [r h z wr sr];
 
 % FP drift and diffusion parametrization
-p_FPdrift     = [ 0.00000  0.00000   ];
-p_FPdiffusion = [ 0.00000  0.00000   ];
+p_FPdrift     = [  1.0      -0.0001   ];
+p_FPdiffusion = [  1.001   0.001   ];
 
 % assemble p
 pvec = [ p_FPdrift  p_FPdiffusion  p_IC];
 
-% NOTE: we could also use the initial parameter estimates from FPEX0setup
-% pvec = FPEX0setup.p0_all;
-
 % simulate
+tic
 sol = FPEX0_simulate(FPEX0setup, pvec);
+toc
 
 % display solution
 FPEX0_visualize(FPEX0setup, sol);

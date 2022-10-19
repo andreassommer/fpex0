@@ -1,11 +1,19 @@
-function sol = FPEX0_simulate(FPEX0setup, p)
-  % sol = FPEX0_simumlate(FPEX0setup, p)
+function sol = FPEX0_simulate(FPEX0setup, p, withDerivatives)
+  % sol = FPEX0_simumlate(FPEX0setup, p, withDerivatives)
   %
-  % Simulates Fokker-Planck with specified parameters for FP drift, diffusion, and initial function.
+  % Simulates Fokker-Planck with specified parameters for 
+  % FP drift, FP diffusion, and initial function.
   %
-  % INPUT:     p --> full parameter vector for Fokker-Planck drift and diffusion and initial distribution 
+  % INPUT: 
+  %       FPEX0setup --> problem setup for FPEX0
+  %                p --> full parameter vector containing parameters for
+  %                      Fokker-Planck drift, Fokker-Planck diffusion 
+  %                      and initial distribution 
+  %  withDerivatives --> flag indicating to calculate derivatives 
+  %                      [default: FALSE]
   %
-  % OUTPUT:  sol --> sol object returned by matlab integrator 
+  % OUTPUT: 
+  %         sol --> sol object returned by matlab integrator 
   %
   % Andreas Sommer, 2017, Aug2022
   % andreas.sommer@iwr.uni-heidelberg.de
@@ -15,7 +23,6 @@ function sol = FPEX0_simulate(FPEX0setup, p)
   % store running index
   persistent runID
  
-
   % initialize or increment running ID
   if isempty(runID), runID = 0; end
   runID = runID + 1;
@@ -33,8 +40,8 @@ function sol = FPEX0_simulate(FPEX0setup, p)
   t0tf          = FPEX0setup.Grid.gridTdot([1 end]);  
   
   % generate right hand side, jacobian
-  FPrhs         = FPEX0setup.make_rhsFcn(p_FPdrift, p_FPdiffusion);
-  FPjac         = FPEX0setup.make_jacFcn(p_FPdrift, p_FPdiffusion);
+  FPrhs         = FPEX0setup.make_FPrhsFcn(p_FPdrift, p_FPdiffusion);
+  FPjac         = FPEX0setup.make_FPjacFcn(p_FPdrift, p_FPdiffusion);
     
   % setup integrator and update jacobian therein
   integrator    = FPEX0setup.Integration.integrator;
@@ -61,7 +68,11 @@ function sol = FPEX0_simulate(FPEX0setup, p)
   % Restore warning condition
   warning(saveWarning);
   
-  % store simulation data (kind of DEBUG)
-  %FPEX0setup.store(runID, timeSIM, success, sol);
+  % store simulation data (for debugging)
+  if (FPEX0setup.debugMode.storeSimulation)
+     storeID = sprintf('sim_%d', runID);
+     storeData = struct('timeSIM', timeSIM, 'success', success, 'sol', sol);
+     FPEX0setup.store(storeID, storeData);
+  end
   
 end

@@ -7,24 +7,30 @@ function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
    %
    %  OUTPUT:   
    %         resvec --> vector of residuals
-   %       jacobian --> jacobian matrix (optional, if requested)  % NOT AVAILABLE IN MATLAB-ONLY VERSION
+   %       jacobian --> jacobian matrix (optional, if requested)      [NOT YET IMPLEMENTED]
    %
    %
-   %  NOTE:  the settings structure containts the following fields:
-   %            .icfun_parameter_count  --> number of parameters of icfun
-   %            .gridT                  --> grid for temperatures
-   %            .gridTdot               --> grid for temperature gradients
+   %  NOTES: * the settings structure containts the following fields:
+   %             .icfun_parameter_count  --> number of parameters of icfun
+   %             .gridT                  --> grid for temperatures
+   %             .gridTdot               --> grid for temperature gradients
+   %         * to avoid implicit weighting, make sure that the computation grid 
+   %           and the measurement grid coincide.
+   %         * only measurement points that lie on computation grid points are 
+   %           used in the calculations
    %
-   %
-   % Author:  Andreas Sommer, 2017, 2018, Aug2022
+   % Author:  Andreas Sommer, 2017, 2018, 2022
    % andreas.sommer@iwr.uni-heidelberg.de
    % code@andreas-sommer.eu
    %
    
    
    
-   % sorry, no derivatives available in Matlab-only implementation yet
-   if (nargout > 1), error('Derivatives not yet available.'); end
+   % jacobian requested?
+   if (nargout > 1), calcJac = true; else, calcJac = false; end
+   if (calcJac == true)
+      error('Not yet implemented.');
+   end
    
    % Debug messages
    if FPEX0setup.debugMode.calcresvec
@@ -58,7 +64,7 @@ function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
    % start time measurement
    resvecTICid = tic;
      
-   % build residual vectors
+   % build residual vector
    resvecs = cell(meas_count, 1);
    for k = 1:meas_count
       % select those measurements that lie on a temperature grid point
@@ -70,7 +76,7 @@ function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
       simVals  = simdata(compIdxSim, k);        % simulations restricted to measurement grid
       resvecs{k} = measVals - simVals;          % residuals
       if FPEX0setup.debugMode.calcresvec
-         showDEBUG(meas_T{k}, simVals, measVals, resvecs{k}, meas_count, k); %% DEBUG: illustration
+         showProgress(meas_T{k}, simVals, measVals, resvecs{k}, meas_count, k); %% DEBUG: illustration
       end
    end
 
@@ -92,7 +98,7 @@ end
 
 
 
-function showDEBUG(T, simVals, measVals, resVals, n, k)
+function showProgress(T, simVals, measVals, resVals, n, k)
    persistent hPlots hAxes hFigure
    % create figure if needed;
    if ( isempty(hFigure) || ~isvalid(hFigure) )
