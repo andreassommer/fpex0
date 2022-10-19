@@ -60,8 +60,8 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
          lsqnonlin_opts.FunValCheck              = 'on';
          lsqnonlin_opts.MaxFunctionEvaluations   = 100000;
          lsqnonlin_opts.StepTolerance            = 1.0d-6;
-         lsqnonlin_opts.FunctionTolerance        = 1.0d-10;
-         lsqnonlin_opts.OptimalityTolerance      = 1.0;        % quite high, but okay for FD
+         lsqnonlin_opts.FunctionTolerance        = 1.0d-8;
+         lsqnonlin_opts.OptimalityTolerance      = 5.0;        % quite high, but okay for FD
          lsqnonlin_opts.Display                  = 'iter-detailed';
          lsqnonlin_opts.TypicalX                 = p_0;
          lsqnonlin_opts.SubproblemAlgorithm      = 'factorization';
@@ -205,10 +205,11 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
    function stop = optimizer_outfun(x,~,state)
       stop = false;
       if strcmp(state,'iter')
-         FPEX0setup.debugMode.calcresvec = true;
-         FPEX0_calcresvec(FPEX0setup, x); % generates graphic output
-         FPEX0setup.debugMode.calcresvec = false;
-         drawnow('limitrate')             % expose the graphic update
+         % generate graphic output once (costs: 1 forward simulation)
+         FPEX0setup.debugMode.showProgress = true;
+         FPEX0_calcresvec(FPEX0setup, x);
+         FPEX0setup.debugMode.showProgress = false;
+         drawnow('limitrate') % expose/update the graphic
       end
    end
 

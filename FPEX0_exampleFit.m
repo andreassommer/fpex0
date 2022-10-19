@@ -22,8 +22,8 @@ function fitsol = FPEX0_exampleFit()
 FPEX0setup = FPEX0_exampleSetup();
 
 % modify some configuration (as example)
-FPEX0setup.Integration.options.RelTol = 1.0d-10;
-FPEX0setup.Integration.options.AbsTol = 1.0d-14;
+FPEX0setup.Integration.options.RelTol = 1.0d-8;
+FPEX0setup.Integration.options.AbsTol = 1.0d-16;
 
 % import the example data
 FPEX0setup = FPEX0_importExampleMeasurements(FPEX0setup, 2); % 2 = gridskip

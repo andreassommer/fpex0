@@ -34,8 +34,10 @@ properties (SetAccess = private)
 end
 
 properties (Access = public)
-   debugMode = struct( 'calcresvec'     , false , ...
-                       'storeSimulation', false );
+   debugMode = struct( 'calcresvec'     , false  ...  % outputs current parameter set in calcresvec (disturbs optimizer output)
+                     , 'showProgress'   , true   ...  % displays figure with simulation, data, and residuals during fit
+                     , 'storeSimulation', false  ...  % stores simulation times + data in every calculation (costly!)
+                     );
 end
 
 methods

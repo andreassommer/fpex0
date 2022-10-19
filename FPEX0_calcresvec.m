@@ -75,8 +75,8 @@ function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
       measVals = meas_values{k}(compIdxMeas);   % measurements restricted to simulation grid
       simVals  = simdata(compIdxSim, k);        % simulations restricted to measurement grid
       resvecs{k} = measVals - simVals;          % residuals
-      if FPEX0setup.debugMode.calcresvec
-         showProgress(meas_T{k}, simVals, measVals, resvecs{k}, meas_count, k); %% DEBUG: illustration
+      if (FPEX0setup.debugMode.showProgress)
+         showProgress(meas_T{k}, simVals, measVals, resvecs{k}, meas_count, k);
       end
    end
 
