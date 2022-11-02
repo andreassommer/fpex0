@@ -51,15 +51,22 @@ function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
    %          i.e. they must be a subset of the integration space (=temperature) grid points
    %        * Same holds for measurement rates: they must be a subset of the 
    %          integration time grid.
+   %        * Ideally, both grids coincide - that avoids implicit weighting.
    
    % get integration "time" grid (heating rates)
    grid_T    = FPEX0setup.Grid.gridT;
    
-   % simulate and store the FP solution
-   sol = FPEX0_simulate(FPEX0setup, p_all);
+   % Simlate and store the FP solution (nominal / state sens / param sens)
+   sol = FPEX0_simulate(FPEX0setup, p_all, calcJac);
    
-   % extract simulation data at heating rates
-   simdata = deval(sol, meas_rates);
+   % dissect nominal / state sens / paramsens
+   if calcJac
+      error('TODO');
+   else
+      % evaluate simulation data at heating rates
+      simNominal = deval(sol, meas_rates);
+   end
+   
    
    % start time measurement
    resvecTICid = tic;
@@ -70,10 +77,10 @@ function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
       % select those measurements that lie on a temperature grid point
       [~, compIdxSim, compIdxMeas] = intersect(grid_T, meas_T{k});
       if length(compIdxMeas) ~= length(meas_T{k})
-         error('Grid does not fit');  % for the time being... 
+         error('Temperature grid for simulation and measurements do not coincide.');  % for the time being... 
       end
       measVals = meas_values{k}(compIdxMeas);   % measurements restricted to simulation grid
-      simVals  = simdata(compIdxSim, k);        % simulations restricted to measurement grid
+      simVals  = simNominal(compIdxSim, k);        % simulations restricted to measurement grid
       resvecs{k} = measVals - simVals;          % residuals
       if (FPEX0setup.debugMode.showProgress)
          showProgress(meas_T{k}, simVals, measVals, resvecs{k}, meas_count, k);
