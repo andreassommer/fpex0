@@ -29,17 +29,8 @@ tgrid = 1:2:betamax;
 t0tf = tgrid([1 end]);
 
 % generate function and jacobian handle
-rhsfun   = @(t,u) FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax);
-Jacobian = @(t,u) FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, false, true, false);
-
-% test/compare jacobians
-% JacobianOLD = @(t,u) old_FokkerPlanckODE_dfdu(t, u, h, [], driftParams, [], diffusionParams);
-% snorm = @(j) norm(j(:));
-% jOLD = JacobianOLD(0, u0);
-% jNEW = Jacobian(0, u0);
-% jDIFF = full(max(max(abs(jOLD-jNEW))));
-% fprintf('\n||jOLD||=%g  ||jNEW||=%g   Difference in Jacobian: %g\n\n', snorm(jOLD), snorm(jNEW), jDIFF);
-
+f    = @(t,u) FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, 1);
+dfdu = @(t,u) FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, 2);
 
 % options and integrator selection
 opts = odeset( 'AbsTol'      , 1e-4     ...
@@ -47,7 +38,7 @@ opts = odeset( 'AbsTol'      , 1e-4     ...
              , 'BDF'         , 'off'    ...
              , 'vectorized'  , 'on'     ...
              , 'JPattern'    , JPattern ...
-             , 'Jacobian'    , Jacobian ...
+             , 'Jacobian'    , dfdu ...
        ...   , 'NonNegative' , 1:N      ...
              , 'stats'       , 'on'      );
              
@@ -56,7 +47,7 @@ integrator = @ode15s;   % use an implicit solver! ode15s or ode23s
 % integration and measurements
 profile clear; profile on
 tic
-sol = integrator(rhsfun, t0tf, u0, opts);
+sol = integrator(f, t0tf, u0, opts);
 toc
 profile off
 profile viewer

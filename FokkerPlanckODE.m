@@ -140,18 +140,18 @@ function [out1, out2, out3, out4, out5] = FokkerPlanckODE(t, u, h, driftParams, 
    
    
    % calculate what was requested
-   if (calcF)    , du    = - alpha * Au +  D * Bu; end   % Vector
+   if (calcF)    , f     = - alpha * Au +  D * Bu; end   % Vector
    if (calcDFDU) , dfdu  = - alpha * A  +  D * B;  end   % Matrix
    if (calcDFDP) , dfdp  = -dalpha * Au + dD * Bu; end   % Matrix - requires correct shape of dalpha and dD
    if (calcDFDUP), dfdup = -dalpha * A  + dD * B;  end   % Matrix - requires correct shape of dalpha and dD
    
    % assign outputs
    switch calcflag
-      case flag__F       ,  out1 = dVDEdu;
+      case flag__F       ,  out1 = f;
       case flag__DFDU    ,  out1 = dfdu;
       case flag__DFDP    ,  out1 = dfdp;
-      case flag__DF1_ALL ,  out1 = du;  out2 = dfdu;  out3 = dfdp;
-      case flag__DF2_ALL ,  out1 = du;  out2 = dfdu;  out3 = dfdp;  out4 = dfdup;
+      case flag__DF1_ALL ,  out1 = f;  out2 = dfdu;  out3 = dfdp;
+      case flag__DF2_ALL ,  out1 = f;  out2 = dfdu;  out3 = dfdp;  out4 = dfdup;
    end
    
    
