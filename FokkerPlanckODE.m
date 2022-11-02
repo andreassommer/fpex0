@@ -1,16 +1,37 @@
-function [out1, out2, out3] = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, calcDU, calcDFDU, calcDFDP)
-   % du   = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, TRUE, false, false)
-   % dfdu = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, false, TRUE, false)
-   % dfdp = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, false, false, TRUE)
-   % [du, dfdu, dfdp] = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, TRUE, TRUE, TRUE)
+function [out1, out2, out3, out4, out5] = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, calcflag)
+   % (1) f    = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, 1)
+   % (2) dfdu = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, 2)
+   % (3) dfdp = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, 3)
+   % (4) [du, dfdu, dfdp] = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, 4)
+   % (5) [du, dfdu, dfdp, dfdup] = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, 5)
    %
    % ODE RHS of Fokker-Planck PDE by using the method of lines (MOL) approach.
    % also including output required for Jacobian computation and VDE computations.
    %
-   % FP-PDE:     u_t = - a(t,p) * u_x(t,x)  +  D(t,p) * u_xx(t,x)
+   % FP-PDE:     u_t = - a(t,p) * u_x(t,x)  +  D(t,p) * u_xx(t,x)  =:  f(t,u,p)
    % 
-   % FD-Approx:  u_x  = ( u(t,x+h) - u(t,x-h ) / (2h)
-   %             u_xx = ( u(t,x+h) - 2u(t,x) + u(t,x-h) ) / h
+   % FD-Approx:  Au := u_x  = ( u(t,x+h) - u(t,x-h ) / (2h)
+   %             Bu := u_xx = ( u(t,x+h) - 2u(t,x) + u(t,x-h) ) / h
+   %             with matrices A and B being appropriate FD stencils 
+   %
+   % This function is able to compute several intertwined rhs. Formulation in terms of ODE.
+   %
+   %     (1)  f = f(t,u,p)
+   %          ---  The nominal ODE rhs
+   %
+   %     (2)  fu = df/du(t,u,p)
+   %          ---  The derivative of the ODE rhs w.r.t. state u
+   %
+   %     (3)  fp = df/dp(t,u,p)
+   %          ---  The derivative of the ODE rhs w.r.t. parameter p
+   %
+   %     (4)  [f, fu, fp] = [f, df/du, df/dp]
+   %          ---  Calculates (1)-(3) simultaneously with individual outputs f, dfdu, dfdp
+   %
+   %     (5)  [f, fu, fp, fup] = [f, df/du, df/dp, df/dup] 
+   %          ---  Additionally to (4), also calculates second derivatives df/dup 
+   %               NOTE: Second derivative w.r.t. to state u is zero:  f_uu = df/duu = 0
+   %
    %
    % INPUT:           t --> time
    %                  u --> state vector
@@ -18,18 +39,25 @@ function [out1, out2, out3] = FokkerPlanckODE(t, u, h, driftParams, diffusionPar
    %        driftParams --> parameter vector for drift function
    %    diffusionParams --> parameter vector for diffusion function
    %            betamax --> maximum heat rate (forwarded to FP diffusion function)
-   %             calcDU --> flag to calculate du    (nominal rhs)                           [default: true ]
+   %             calcF --> flag to calculate du    (nominal rhs)                           [default: true ]
    %           calcDFDU --> flag to calculate dfdu  (derivative of rhs w.r.t. states u)     [default: false]
    %           calcDFDP --> flag to calculate dfdp  (derivative of rhs w.r.t. parameters p) [default: false]
+   %         calcDVDEDU --> flag to calculate dVDEdu (derivative of VDE w.r.t. state u)     [default: false]
    %
-   % OUTPUT:    dx --> rhs vector                                              [if calcDU   is true]
-   %          dfdu --> derivative of rhs w.r.t. state variable u               [if calcDFDU is true]
-   %          dfdp --> derivative of rhs w.r.t. drift and diffusion parameters [if calcDFDP is true]
+   % OUTPUT:  Call types (1)-(5):
+   %                  f --> rhs vector
+   %               dfdu --> derivative of rhs w.r.t. state variable u
+   %               dfdp --> derivative of rhs w.r.t. drift and diffusion parameters
+   %              dfdup --> 2nd order derivative of rhs w.r.t. states and parameters f_up
+   %
+   %          Call type (5)
+   %                VDE --> VDE rhs vector in augmented state uu
+   %            dVDEduu --> derivative of VDE rhs w.r.t. the augmented state uu
    %
    % If SolvIND is not available, use this function as pure Matlab implementation.
    %
    % Note: - vectorized implementation
-   %       - if dfdp is requested, the internaly used driftFcn and diffusionFcn must be able 
+   %       - if dfdp or dVDEdu is requested, the internaly used driftFcn and diffusionFcn must be able 
    %         to return their derivatives w.r.t. the parameters as second return argument
    %            df/dpDrift = - d/dpDrift a(t,p) * u_x    % drift
    %            df/dpDiff  =   d/dpDiff  D(t,p) * u_xx   % diffusion
@@ -38,15 +66,36 @@ function [out1, out2, out3] = FokkerPlanckODE(t, u, h, driftParams, diffusionPar
    % andreas.sommer@iwr.uni-heidelberg.de
    % code@andreas-sommer.eu
    %
+   
+   % if no calcflag was given, use default value
+   if (nargin < 7), calcflag = 1; end
+
+   % initialize flags
+   flag__F       = 1;   % f (nominal ODE)
+   flag__DFDU    = 2;   % dfdu
+   flag__DFDP    = 3;   % dfdp
+   flag__DF1_ALL = 4;   % all 1st order derivatives
+   flag__DF2_ALL = 5;   % all 1st and nonzero 2nd order derivatives
+   
+%    flag__VDE_U
+%    flag__VDE_P
+%    flag__DVDE_DU
+
+   % check what was requested
+   switch calcflag
+      case flag__F       ,  calcF = true;   calcDFDU = false;  calcDFDP = false;  calcDFDUP = false;  % f (nominal ODE)
+      case flag__DFDU    ,  calcF = false;  calcDFDU = true;   calcDFDP = false;  calcDFDUP = false;  % dfdu
+      case flag__DFDP    ,  calcF = false;  calcDFDU = false;  calcDFDP = true;   calcDFDUP = false;  % dfdp
+      case flag__DF1_ALL ,  calcF = true;   calcDFDU = true;   calcDFDP = true;   calcDFDUP = false;  % f, dfdu, dfdp
+      case flag__DF2_ALL ,  calcF = true;   calcDFDU = true;   calcDFDP = true;   calcDFDUP = true;   % f, dfdu, dfdp, dfdup
+      otherwise
+         msg = 'FokkerPlanckODE: Bad output request.';
+         disp(msg);
+         error(msg);
+   end
 
    % allocate persistent storage for differentiation stencils
    persistent NN A B
-
-   % check optional input args
-   if (nargin < 8),  calcDU   = true;  end
-   if (nargin < 9),  calcDFDU = false; end
-   if (nargin < 10), calcDFDP = false; end
-
    
    % number of grid points and number of simultaneously requested vectors (vectorization)
    [N, vectors] = size(u);
@@ -66,60 +115,43 @@ function [out1, out2, out3] = FokkerPlanckODE(t, u, h, driftParams, diffusionPar
       NN = N;
    end
    
-   
    % preallocate vectors for A*u (approx. of u_x) and B*u (approx. of u_xx)
    Bu = zeros(N, vectors);
    Au = zeros(N, vectors);
    
-   % vectorized evaluation --- direct: Same speed as matrix multiplication below, but we need A and B anyways
-   % %    % first node  (remember: Matlab is 1-based)
-   % %    Bu(1,:) = ( -2*u(1,:) + 2*u(2,:) ) / h^2;
-   % %    % Au(1) is zero
-   % %
-   % %    % inner nodes (remember: Matlab is 1-based, so starting from 2)
-   % %    i = 2:N-1;
-   % %    Au(i,:) = ( u(i-1,:) - u(i+1,:) ) / (2*h);           % 1st derivative stencil and scale
-   % %    Bu(i,:) = ( u(i-1,:) - 2*u(i,:) + u(i+1,:) ) / h^2;  % 2nd derivative stencil and scale
-   % %
-   % %    % last node   (remember: Matlab is 1-based, so last node is N)
-   % %    Bu(N,:) = ( -2*u(N,:) + 2*u(N-1,:) ) / h^2;
-   % %    % Au(N) is zero
-
    % vectorized evaluation --- with stored stencil matrices
    for i = 1:vectors
-      Au(:,i) = A * u(:,i);
-      Bu(:,i) = B * u(:,i);
+      Au(:,i) = full(A * u(:,i));    % vectors are not sparse anymore
+      Bu(:,i) = full(B * u(:,i));    % so change them into full vectors
    end
    
-   % evaluate drift and diffusion
+   
+   % evaluate drift and diffusion --- possibly with derivates
    if (calcDFDP)
       [alpha, dalpha] = FPEX0_driftFcn(t, driftParams);
       [D    , dD    ] = FPEX0_diffusionFcn(t, diffusionParams, betamax);
+      % ensure dalpha and dD are "single-row"-vectors
+      dalpha = reshape(dalpha, 1, []);
+      dD     = reshape(dD    , 1, []);
    else
       alpha = FPEX0_driftFcn(t, driftParams);
       D     = FPEX0_diffusionFcn(t, diffusionParams, betamax);
    end
    
+   
    % calculate what was requested
-   if (calcDU)  , du   = - alpha * Au +  D * Bu; end
-   if (calcDFDU), dfdu = - alpha * A  +  D * B;  end
-   if (calcDFDP), dfdp = -dalpha * Au + dD * Bu; end
+   if (calcF)    , du    = - alpha * Au +  D * Bu; end   % Vector
+   if (calcDFDU) , dfdu  = - alpha * A  +  D * B;  end   % Matrix
+   if (calcDFDP) , dfdp  = -dalpha * Au + dD * Bu; end   % Matrix - requires correct shape of dalpha and dD
+   if (calcDFDUP), dfdup = -dalpha * A  + dD * B;  end   % Matrix - requires correct shape of dalpha and dD
    
    % assign outputs
-   if (calcDU && calcDFDU && calcDFDP)
-      out1 = du; 
-      out2 = dfdu;
-      out3 = dfdp;
-   elseif (calcDU)
-      out1 = du;
-   elseif (calcDFDU)
-      out1 = dfdu;
-   elseif (calcDFDP)
-      out1 = dfdp;
-   else
-      msg = 'FokkerPlanckODE: Bad output request.'; 
-      disp(msg);
-      error(msg);
+   switch calcflag
+      case flag__F       ,  out1 = dVDEdu;
+      case flag__DFDU    ,  out1 = dfdu;
+      case flag__DFDP    ,  out1 = dfdp;
+      case flag__DF1_ALL ,  out1 = du;  out2 = dfdu;  out3 = dfdp;
+      case flag__DF2_ALL ,  out1 = du;  out2 = dfdu;  out3 = dfdp;  out4 = dfdup;
    end
    
    
