@@ -72,14 +72,14 @@ methods
    
    % GENERATOR: Right hand side function
    function rhsFcn = make_FPrhsFcn(obj, p_FPdrift, p_FPdiffusion)
-      rhsFcn = @(t,u) FokkerPlanckODE(t, u, obj.Grid.h, p_FPdrift, p_FPdiffusion, obj.betamax);
+      rhsFcn = @(t,u) FokkerPlanckODE(t, u, obj.Grid.h, p_FPdrift, p_FPdiffusion, obj.betamax, 1);
    end
    
    
    
    % GENERATOR: Jacobian function
    function jacFcn = make_FPjacFcn(obj, p_FPdrift, p_FPdiffusion)
-      jacFcn = @(t,u) FokkerPlanckODE(t, u, obj.Grid.h, p_FPdrift, p_FPdiffusion, obj.betamax, false, true, false);
+      jacFcn = @(t,u) FokkerPlanckODE(t, u, obj.Grid.h, p_FPdrift, p_FPdiffusion, obj.betamax, 2);
    end
    
    
