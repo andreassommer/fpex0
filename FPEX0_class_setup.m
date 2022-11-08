@@ -70,18 +70,24 @@ methods
    
    
    
-   % GENERATOR: Right hand side function
+   % GENERATOR: ODE right hand side 
    function rhsFcn = make_FPrhsFcn(obj, p_FPdrift, p_FPdiffusion)
       rhsFcn = @(t,u) FokkerPlanckODE(t, u, obj.Grid.h, p_FPdrift, p_FPdiffusion, obj.betamax, 1);
    end
    
    
    
-   % GENERATOR: Jacobian function
+   % GENERATOR: ODE Jacobian function
    function jacFcn = make_FPjacFcn(obj, p_FPdrift, p_FPdiffusion)
       jacFcn = @(t,u) FokkerPlanckODE(t, u, obj.Grid.h, p_FPdrift, p_FPdiffusion, obj.betamax, 2);
    end
    
+   
+   % GENERATOR: VDE right hand side
+   function FP_VDE_rhs = make_VDErhsFcn(obj, p_FPdrift, p_FPdiffusion, solNOMINAL)
+      np = obj.Parameters.count();
+      FP_VDE_rhs = @(t,x) FokkerPlanckVDE(t, solNOMINAL, x, obj.Grid.h, p_FPdrift, p_FPdiffusion, obj.betamax, np, false);
+   end
    
    % Store something
    function store(obj, name, thing)

@@ -27,12 +27,17 @@ function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
    
    
    % jacobian requested?
-   if (nargout > 1), calcJac = true; else, calcJac = false; end
+   if (nargout > 1)
+      calcJac = true; 
+   else 
+      calcJac = false;
+   end
+   % at the moment...
    if (calcJac == true)
       error('Not yet implemented.');
    end
    
-   % Debug messages
+   % debug messages
    if FPEX0setup.debugMode.calcresvec
       paramString = sprintf('%22.16f ', p_all );
       fprintf('calcresvec:  p = [ %s ]\n', paramString);
@@ -56,17 +61,11 @@ function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
    % get integration "time" grid (heating rates)
    grid_T    = FPEX0setup.Grid.gridT;
    
-   % Simlate and store the FP solution (nominal / state sens / param sens)
-   sol = FPEX0_simulate(FPEX0setup, p_all, calcJac);
+   % Simlate and store the FP solution, possibly with parameter sensitivites
+   [solNominal, solJacobian] = FPEX0_simulate(FPEX0setup, p_all, calcJac);
    
-   % dissect nominal / state sens / paramsens
-   if calcJac
-      error('TODO');
-   else
-      % evaluate simulation data at heating rates
-      simNominal = deval(sol, meas_rates);
-   end
-   
+   % evaluate simulation data at heating rates
+   simNominal = deval(solNominal, meas_rates);
    
    % start time measurement
    resvecTICid = tic;

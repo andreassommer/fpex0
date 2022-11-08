@@ -1,7 +1,6 @@
 classdef FPEX0_class_parameters < handle
    
    properties (SetAccess = private)
-      values         % "current" values - probably should not be used at all!
       p0             % initial values (first guess)
       p_lb           % lower bounds for parameters
       p_ub           % upper bounds for parameters
@@ -22,10 +21,9 @@ classdef FPEX0_class_parameters < handle
       function obj = set.p0(obj,values);      obj.p0     = values;          end 
       function obj = set.p_lb(obj,values);    obj.p_lb   = values;          end 
       function obj = set.p_ub(obj,values);    obj.p_ub   = values;          end 
-      function obj = set.values(obj,values);  obj.values = values;          end
       
       % getter functions
-      function val = get.count(obj);          val = length(obj.values);     end
+      function val = get.count(obj);          val = length(obj.p0);         end
 
       % accessor functions for (external/input) parameter vector
       function val = extract_p_all(~,pp);           val = pp;                      end      

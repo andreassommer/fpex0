@@ -1,4 +1,4 @@
-function [out1, out2, out3, out4, out5] = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, calcflag)
+function [out1, out2, out3, out4] = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, calcflag)
    % (1) f    = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, 1)
    % (2) dfdu = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, 2)
    % (3) dfdp = FokkerPlanckODE(t, u, h, driftParams, diffusionParams, betamax, 3)
@@ -30,7 +30,19 @@ function [out1, out2, out3, out4, out5] = FokkerPlanckODE(t, u, h, driftParams, 
    %
    %     (5)  [f, fu, fp, fup] = [f, df/du, df/dp, df/dup] 
    %          ---  Additionally to (4), also calculates second derivatives df/dup 
-   %               NOTE: Second derivative w.r.t. to state u is zero:  f_uu = df/duu = 0
+   %            NOTE: df/dup is a tensor. We deliver it as sparse vector dfdup(l) = dfdup(i,j,k)
+   %            with l = (i-1)*N^2 + (j-1)*N + k    ( i = 1..np_FP,  j = 1..N,  k = 1..N )
+   %            To get the second order mixed derivative d/du d/dp f, observe:
+   %                    dfdp(i,j) = -dalpha/dp(i) * Au(j)  + dD/dp(i) * Bu(j)
+   %            d/du(k) dfdp(i,j) = -dalpha/dp(i) * A(j,k) + dD/dp(i) * B(j,k)  =: dfdup(i,j,k)
+   %            Note that A and B are very sparse, thus also dfdup.
+   %          ---  NOTE: Second derivative w.r.t. to state u is zero:  f_uu = df/duu = 0
+   %
+   %     (6)  [fu, fp] = [df/du, df/dp]
+   %          ---  Calculates (2) and (3) simultaneously with individual outputs fu, fp
+   %
+   %     (7)  [fu, fp, fup] = [df/du, df/dp, df/dup] 
+   %          ---  Same as (5) but without (1)
    %
    %
    % INPUT:           t --> time
@@ -39,20 +51,14 @@ function [out1, out2, out3, out4, out5] = FokkerPlanckODE(t, u, h, driftParams, 
    %        driftParams --> parameter vector for drift function
    %    diffusionParams --> parameter vector for diffusion function
    %            betamax --> maximum heat rate (forwarded to FP diffusion function)
-   %             calcF --> flag to calculate du    (nominal rhs)                           [default: true ]
-   %           calcDFDU --> flag to calculate dfdu  (derivative of rhs w.r.t. states u)     [default: false]
-   %           calcDFDP --> flag to calculate dfdp  (derivative of rhs w.r.t. parameters p) [default: false]
-   %         calcDVDEDU --> flag to calculate dVDEdu (derivative of VDE w.r.t. state u)     [default: false]
+   %           calcflag --> flag that determines what to calculate (value range 1 to 5)
    %
    % OUTPUT:  Call types (1)-(5):
    %                  f --> rhs vector
    %               dfdu --> derivative of rhs w.r.t. state variable u
    %               dfdp --> derivative of rhs w.r.t. drift and diffusion parameters
-   %              dfdup --> 2nd order derivative of rhs w.r.t. states and parameters f_up
+   %              dfdup --> 2nd order mixed derivative information rhs w.r.t. states and parameters, see above
    %
-   %          Call type (5)
-   %                VDE --> VDE rhs vector in augmented state uu
-   %            dVDEduu --> derivative of VDE rhs w.r.t. the augmented state uu
    %
    % If SolvIND is not available, use this function as pure Matlab implementation.
    %
@@ -72,22 +78,24 @@ function [out1, out2, out3, out4, out5] = FokkerPlanckODE(t, u, h, driftParams, 
 
    % initialize flags
    flag__F       = 1;   % f (nominal ODE)
-   flag__DFDU    = 2;   % dfdu
-   flag__DFDP    = 3;   % dfdp
-   flag__DF1_ALL = 4;   % all 1st order derivatives
-   flag__DF2_ALL = 5;   % all 1st and nonzero 2nd order derivatives
+   flag__DFDU    = 2;   % df/du
+   flag__DFDP    = 3;   % df/dp
+   flag__F_DF1   = 4;   % f, df/du, df/dp
+   flag__F_DFALL = 5;   % f, df/du, df/dp, (d/du df/dp)
+   flag__DF1     = 6;   % df/du, df/dp
+   flag__DF2     = 7;   % (d/du df/dp) - mixed second order derivative
    
-%    flag__VDE_U
-%    flag__VDE_P
-%    flag__DVDE_DU
+   
 
-   % check what was requested
+   % check what was requested (grown thing, bitwise flags would have been a better idea)
    switch calcflag
       case flag__F       ,  calcF = true;   calcDFDU = false;  calcDFDP = false;  calcDFDUP = false;  % f (nominal ODE)
       case flag__DFDU    ,  calcF = false;  calcDFDU = true;   calcDFDP = false;  calcDFDUP = false;  % dfdu
       case flag__DFDP    ,  calcF = false;  calcDFDU = false;  calcDFDP = true;   calcDFDUP = false;  % dfdp
-      case flag__DF1_ALL ,  calcF = true;   calcDFDU = true;   calcDFDP = true;   calcDFDUP = false;  % f, dfdu, dfdp
-      case flag__DF2_ALL ,  calcF = true;   calcDFDU = true;   calcDFDP = true;   calcDFDUP = true;   % f, dfdu, dfdp, dfdup
+      case flag__DF1     ,  calcF = false;  calcDFDU = true;   calcDFDP = true;   calcDFDUP = false;  % dfdu, dfdp
+      case flag__DF2     ,  calcF = false;  calcDFDU = false;  calcDFDP = false;  calcDFDUP = true ;  % dfdup
+      case flag__F_DF1   ,  calcF = true;   calcDFDU = true;   calcDFDP = true;   calcDFDUP = false;  % f, dfdu, dfdp
+      case flag__F_DFALL ,  calcF = true;   calcDFDU = true;   calcDFDP = true;   calcDFDUP = true;   % f, dfdu, dfdp, dfdup
       otherwise
          msg = 'FokkerPlanckODE: Bad output request.';
          disp(msg);
@@ -95,10 +103,12 @@ function [out1, out2, out3, out4, out5] = FokkerPlanckODE(t, u, h, driftParams, 
    end
 
    % allocate persistent storage for differentiation stencils
-   persistent NN A B
+   persistent NN A B idxNonzeroA idxNonzeroB nnzA nnzB
    
    % number of grid points and number of simultaneously requested vectors (vectorization)
    [N, vectors] = size(u);
+   np_drift     = length(driftParams);
+   np_diffusion = length(diffusionParams);
    
    % if dimension has changed, we have to reassemble the stencil matrices
    if (N==NN)
@@ -112,19 +122,22 @@ function [out1, out2, out3, out4, out5] = FokkerPlanckODE(t, u, h, driftParams, 
       B = spdiags([e1 , -2*e1 ,  e1], -1:1, N, N); B(1,2)=2; B(N,N-1)=2;  % 2nd order stencil + robin boundary
       A = A / (2*h);
       B = B / h^2;
+      idxNonzeroA = find(A);  nnzA = nnz(A);
+      idxNonzeroB = find(B);  nnzB = nnz(B);
       NN = N;
    end
    
-   % preallocate vectors for A*u (approx. of u_x) and B*u (approx. of u_xx)
-   Bu = zeros(N, vectors);
-   Au = zeros(N, vectors);
-   
-   % vectorized evaluation --- with stored stencil matrices
-   for i = 1:vectors
-      Au(:,i) = full(A * u(:,i));    % vectors are not sparse anymore
-      Bu(:,i) = full(B * u(:,i));    % so change them into full vectors
+   % products A*u and B*u are not always needed
+   if (calcF || calcDFDP)
+      % preallocate vectors for A*u (approx. of u_x) and B*u (approx. of u_xx)
+      Au = zeros(N, vectors);
+      Bu = zeros(N, vectors);
+      % vectorized evaluation --- with stored stencil matrices
+      for i = 1:vectors
+         Au(:,i) = full(A * u(:,i));    % vectors are not sparse anymore
+         Bu(:,i) = full(B * u(:,i));    % so change them into full vectors
+      end
    end
-   
    
    % evaluate drift and diffusion --- possibly with derivates
    if (calcDFDP)
@@ -140,18 +153,70 @@ function [out1, out2, out3, out4, out5] = FokkerPlanckODE(t, u, h, driftParams, 
    
    
    % calculate what was requested
-   if (calcF)    , f     = - alpha * Au +  D * Bu; end   % Vector
-   if (calcDFDU) , dfdu  = - alpha * A  +  D * B;  end   % Matrix
-   if (calcDFDP) , dfdp  = -dalpha * Au + dD * Bu; end   % Matrix - requires correct shape of dalpha and dD
-   if (calcDFDUP), dfdup = -dalpha * A  + dD * B;  end   % Matrix - requires correct shape of dalpha and dD
+   if (calcF)   
+      % rhs is an Nx1 vector
+      f = - alpha * Au +  D * Bu;
+   end
+   
+   if (calcDFDU)
+      % state derivative is an NxN matrix
+      dfdu  = - alpha * A  +  D * B;
+      % NOTE: Actually, 
+   end
+   
+   if (calcDFDP)
+      % Matrix - requires correct shape of dalpha and dD
+      % dfdp  = - Au * dalpha  + Bu * dD; 
+      %   
+      dfdp = zeros(N, np_drift + np_diffusion);
+      for i = 1:np_drift
+         dfdp(:, i) = - dalpha(i) * Au;
+      end
+      for i = 1:np_diffusion
+         dfdp(:, i+np_drift) = dD(i) * Bu;
+      end
+   end   
+      
+   
+   if (calcDFDUP)
+      np_FP = np_drift+np_diffusion;
+%       entries = cell(np_FP);
+%       indices = cell(np_FP);
+%       iii = 1;
+%       for i = 1:np_drift
+%          entries{iii} = reshape( - dalpha(i) * A , [], 1 );
+%          %%%indices{iii} = 1;
+%          iii = iii + 1;
+%       end
+%       for i = 1:np_diffusion
+%          entries{iii} = reshape( dD(i) * B, [], 1 );
+%          %%%indices{iii} = 1;
+%          iii = iii + 1;
+%       end
+%       
+      % Variant 2 -- SLOW
+      dfdup = spalloc(N*N*np_FP, 1, nnzA + nnzB);  % preallocate sparse vector
+      offset = 0;
+      for i = 1:np_drift
+         dfdup(offset+idxNonzeroA) = - dalpha(i) * A(idxNonzeroA);
+         offset = offset + N*N;
+      end
+      for i = 1:np_diffusion
+         dfdup(offset+idxNonzeroB) = dD(i) * B(idxNonzeroB);
+         offset = offset + N*N;
+      end
+   end
+   
    
    % assign outputs
    switch calcflag
       case flag__F       ,  out1 = f;
       case flag__DFDU    ,  out1 = dfdu;
       case flag__DFDP    ,  out1 = dfdp;
-      case flag__DF1_ALL ,  out1 = f;  out2 = dfdu;  out3 = dfdp;
-      case flag__DF2_ALL ,  out1 = f;  out2 = dfdu;  out3 = dfdp;  out4 = dfdup;
+      case flag__F_DF1   ,  out1 = f;      out2 = dfdu;  out3 = dfdp;
+      case flag__F_DFALL ,  out1 = f;      out2 = dfdu;  out3 = dfdp;  out4 = dfdup;
+      case flag__DF1     ,  out1 = dfdu;   out2 = dfdp;
+      case flag__DF2     ,  out1 = dfdup;
    end
    
    
