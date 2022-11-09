@@ -41,28 +41,31 @@ https://doi.org/10.1007/s10973-022-11258-y
 The example uses Matlab's `lsqnonlin` for optimization; other optimizers are available (see `FPEX0_fit.m`). 
 
 The example should converge within approx 20 iterations close to the following point:  
-`x = [-0.9555 0.0328 0.2861 3.4172 2.5732 43.0439 131.8116 3.6591 0.1861]`
+`p = [-0.9553 0.0329 0.2693 3.4700 2.5736 42.0826 131.7993 3.7684 0.1909]`
 
 Depending on the problem and chosen accuracies, the optimization might stop due to different reasons.
 A (close to) optimal solution is found, if the so called "first-order optimality" measure is small
-(ideally zero, but when using FD approximations in FPEX0, values less than 10 are acceptable).
+(ideally zero, but when using FD approximations in FPEX0, values less than 10 are acceptable. Default is 1.0).
 
 
 
 ## Questions:
 - Why is it slow?  
   Answer: Since the Matlab integrators are not capabale to deliver accurate and consistent sensitivity information,
-  which is cruical for optimization, the required derivatives are approximated via external numerical
-  differentiation. This requires on the one hand a lot of function evaluations, and on the other hand
-  highly accurate integration tolerances, leading to lenghty computation times.
+  which is cruical for optimization, the required derivatives are approximated via (1) external numerical differentiation,
+  or by using the (2) variational differential equations.  
+  (1) requires lot of function evaluations, and highly accurate integration tolerances, leading to lenghty computation times. 
+  (2) is much faster, and in principle more accurate, but does not deliver consistent sensitivities.
+  With state-of-the-art solvers like SolvIND from our group, we can deliver consistent and highly accurate derivatives.
 - Can it be made faster?  
   Answer: Yes. We have much faster external integrators at hand. Contact us for details.
 - Can I do anything to make it faster?  
   There are several possibilities:  
-  - Reduce the integration tolerances, e.g. set reltol = 1e-8 and abstol = 1-e12  
-  - Change finite difference approximation in the optimizer settings to "forward"
-  - Use a coarser temperature grid
-  Note that the aforementioned tricks will negatively impact the optimizer's optimality check, 
+  - Reduce the integration tolerances, e.g. set reltol = 1e-6 and abstol = 1-e10. 
+    When using the VDE sensitivities (default), the tolerances for the nominal might even be lower.
+  - Change finite difference approximation in the optimizer settings to "forward"  
+  - Use a coarser temperature grid - or a finer! The coarser, the more stiff the system becomes at initial times.  
+  Note that the aforementioned tricks might negatively impact the optimizer's optimality check, 
   making it hard to detect a "mathematically clean" optimum by testing the first-order optimality,
   but should still converge to a "good" fit.  
   This fit can then be re-evaluated with finer grids, tighter tolerances, etc., to show optimality (if required).

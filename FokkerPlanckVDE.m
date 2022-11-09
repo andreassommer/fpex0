@@ -103,7 +103,8 @@ function out = FokkerPlanckVDE(t, sol_u, Gp, h, driftParams, diffusionParams, be
    Gp = reshape(Gp, N, np);
    
    % evaluate nominal solution
-   u = deval(sol_u, t);
+   % u = eval(sol_u, t); % deval is slow - but do we have a choice?
+   u = sol_u(t);         % see function make_VDErhsFcn() in FPEX0_class_setup.m
    
    % get the required quantities from FokkerPlanckODE:
    if calcJacobian

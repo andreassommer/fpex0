@@ -28,7 +28,7 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
    p_ub = FPEX0setup.Parameters.p_ub;
    p_FPdiffIdx = FPEX0setup.Parameters.idxFPdiffusion;
 
-   % Build linear constraints for fmincon:
+   % Build linear constraints:
    %
    % We want to have non-negative diffusion in whole time horizon
    %     p_FPdiffusion_1 + t * p_FPdfiffusion_2  >=  0   for all t in [0, T]
@@ -50,18 +50,39 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
    fprintf('\nStarting:  %s\n', optimizer)
    switch upper(optimizer)
       
+      case 'LSQNONLIN'
+         % ============= Using SOLVIND derivatives
+         lsqnonlin_opts = optimoptions(@lsqnonlin);
+         lsqnonlin_opts.SpecifyObjectiveGradient = true;       % jacobian is built by calcresvec
+         lsqnonlin_opts.CheckGradients           = false;      % the FD approximation is too poor to verify anything
+         lsqnonlin_opts.UseParallel              = true;       % no benefit with analytic jacobian, but it does not hurt
+         lsqnonlin_opts.Diagnostics              = 'on';
+         lsqnonlin_opts.FunValCheck              = 'off';
+         lsqnonlin_opts.StepTolerance            = 1.0d-6;
+         lsqnonlin_opts.FunctionTolerance        = 1.0d-10;
+         lsqnonlin_opts.OptimalityTolerance      = 1.0;        % 
+         lsqnonlin_opts.Display                  = 'iter-detailed';
+         lsqnonlin_opts.TypicalX                 = p_0;
+         lsqnonlin_opts.SubproblemAlgorithm      = 'factorization';
+         lsqnonlin_opts.MaxIterations            = 50;
+         lsqnonlin_opts.OutputFcn                = @optimizer_outfun;
+         [x,resnorm,res,exit,out,lambda,jac] = lsqnonlin(resvecfun, p_0, p_lb, p_ub, lsqnonlin_opts);
+         fitsol = struct('x',x,'resnorm',resnorm,'residual',res,'exitflag',exit,'output',out,...
+                         'lambda',lambda,'jacobian',jac,'opts',lsqnonlin_opts);
+         displayResult(x, resnorm);
+
       case 'LSQNONLINFD'
          % ============= Derivative-based solver not a good idea, as FD will probably fail for the PDE solutions
          lsqnonlin_opts = optimoptions(@lsqnonlin);
          lsqnonlin_opts.SpecifyObjectiveGradient = false;      % jacobian is built by calcresvec
          lsqnonlin_opts.CheckGradients           = false;      % the FD approximation is too poor to verify anything
-         lsqnonlin_opts.UseParallel              = true;       % initialize pool via parpool(n) 
+         lsqnonlin_opts.UseParallel              = true;       % very beneficial for FD - initialize pool via parpool(n) 
          lsqnonlin_opts.Diagnostics              = 'on';
-         lsqnonlin_opts.FunValCheck              = 'on';
+         lsqnonlin_opts.FunValCheck              = 'off';
          lsqnonlin_opts.MaxFunctionEvaluations   = 100000;
          lsqnonlin_opts.StepTolerance            = 1.0d-6;
          lsqnonlin_opts.FunctionTolerance        = 1.0d-8;
-         lsqnonlin_opts.OptimalityTolerance      = 5;          % quite high, but okay for FD
+         lsqnonlin_opts.OptimalityTolerance      = 10.0;       % quite high, but okay for FD
          lsqnonlin_opts.Display                  = 'iter-detailed';
          lsqnonlin_opts.TypicalX                 = p_0;
          lsqnonlin_opts.SubproblemAlgorithm      = 'factorization';
@@ -72,38 +93,18 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
          fitsol = struct('x',x,'resnorm',resnorm,'residual',res,'exitflag',exit,'output',out,...
                          'lambda',lambda,'jacobian',jac,'opts',lsqnonlin_opts);
          displayResult(x, resnorm);
-         
-      case 'LSQNONLIN'
-         % ============= Using SOLVIND derivatives
-         lsqnonlin_opts = optimoptions(@lsqnonlin);
-         lsqnonlin_opts.SpecifyObjectiveGradient = true;       % jacobian is built by calcresvec
-         lsqnonlin_opts.CheckGradients           = false;      % the FD approximation is too poor to verify anything
-         lsqnonlin_opts.UseParallel              = true;       % no benefit with analytic jacobian, but it does not hurt
-         lsqnonlin_opts.Diagnostics              = 'on';
-         lsqnonlin_opts.FunValCheck              = 'on';
-         lsqnonlin_opts.StepTolerance            = 1.0d-6;
-         lsqnonlin_opts.FunctionTolerance        = 1.0d-10;
-         lsqnonlin_opts.OptimalityTolerance      = 1.0d-1;
-         lsqnonlin_opts.Display                  = 'iter-detailed';
-         lsqnonlin_opts.TypicalX                 = p_0;
-         lsqnonlin_opts.SubproblemAlgorithm      = 'factorization';
-         lsqnonlin_opts.MaxIterations            = 50;
-         lsqnonlin_opts.OutputFcn                = @optimizer_outfun;
-         [x,resnorm,res,exit,out,lambda,jac] = lsqnonlin(resvecfun, p_0, p_lb, p_ub, lsqnonlin_opts);
-         fitsol = struct('x',x,'resnorm',resnorm,'residual',res,'exitflag',exit,'output',out,...
-                         'lambda',lambda,'jacobian',jac,'opts',lsqnonlin_opts);
-         displayResult(x, resnorm);
+
          
       case 'FMINCONFD'
          % ============= Using SOLVIND derivatives
          warning('FMINCON is not the method of choice for this kind of problem. Try LSQNONLINFD.')
-         % TEST derivatives
-         % [ff, jj] = scalarobjective(p_all); df = zeros(size(p_all));
-         % for k=1:length(p_all)
-         %    FDh = 1.0d-7; p_all(k) = p_all(k) + FDh; ff2 = scalarobjective(p_all); 
-         %    p_all(k) = p_all(k) - FDh; df(k) = (ff2 - ff) / FDh;
-         % end
-         % keyboard
+         %TEST derivatives
+         [ff, jj] = scalarobjective(p_all); df = zeros(size(p_all));
+         for k=1:length(p_all)
+            FDh = 1.0d-7; p_all(k) = p_all(k) + FDh; ff2 = scalarobjective(p_all); 
+            p_all(k) = p_all(k) - FDh; df(k) = (ff2 - ff) / FDh;
+         end
+         keyboard
          fmincon_opts = optimoptions('fmincon');
          fmincon_opts.Algorithm                = 'interior-point';  %'interior-point'; %'sqp'  %'active-set';
          fmincon_opts.SpecifyObjectiveGradient = false;             % no derivatives yet

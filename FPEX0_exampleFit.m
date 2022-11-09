@@ -22,10 +22,10 @@ function fitsol = FPEX0_exampleFit()
 FPEX0setup = FPEX0_exampleSetup();
 
 % modify some configuration (as example)
-FPEX0setup.Integration.options.RelTol = 1.0d-6;
-FPEX0setup.Integration.options.AbsTol = 1.0d-12;
-FPEX0setup.Integration.VDEoptions.RelTol = 1.0d-4;
-FPEX0setup.Integration.VDEoptions.AbsTol = 1.0d-12;
+%FPEX0setup.Integration.options.RelTol = 1.0d-8;
+%FPEX0setup.Integration.options.AbsTol = 1.0d-14;
+%FPEX0setup.Integration.VDEoptions.RelTol = 1.0d-8;
+%FPEX0setup.Integration.VDEoptions.AbsTol = 1.0d-14;
 
 
 % import the example data
