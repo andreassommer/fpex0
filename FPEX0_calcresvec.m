@@ -7,7 +7,7 @@ function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
    %
    %  OUTPUT:   
    %         resvec --> vector of residuals
-   %       jacobian --> jacobian matrix (optional, if requested)      [NOT YET IMPLEMENTED]
+   %       jacobian --> jacobian matrix (optional, if requested)
    %
    %
    %  NOTES: * the settings structure containts the following fields:
@@ -28,13 +28,9 @@ function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
    
    % jacobian requested?
    if (nargout > 1)
-      calcJac = true; 
+      calcJacobian = true; 
    else 
-      calcJac = false;
-   end
-   % at the moment...
-   if (calcJac == true)
-      error('Not yet implemented.');
+      calcJacobian = false;
    end
    
    % debug messages
@@ -58,11 +54,17 @@ function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
    %          integration time grid.
    %        * Ideally, both grids coincide - that avoids implicit weighting.
    
-   % get integration "time" grid (heating rates)
-   grid_T    = FPEX0setup.Grid.gridT;
+   % get temperature grid and problem sizes
+   grid_T = FPEX0setup.Grid.gridT;
+   N      = FPEX0setup.Grid.N;
+   np     = length(p_all);
    
    % Simlate and store the FP solution, possibly with parameter sensitivites
-   [solNominal, solJacobian] = FPEX0_simulate(FPEX0setup, p_all, calcJac);
+   if calcJacobian
+      [solNominal, solJacobian] = FPEX0_simulate(FPEX0setup, p_all);
+   else
+      solNominal = FPEX0_simulate(FPEX0setup, p_all);
+   end
    
    % evaluate simulation data at heating rates
    simNominal = deval(solNominal, meas_rates);
@@ -79,19 +81,33 @@ function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
          error('Temperature grid for simulation and measurements do not coincide.');  % for the time being... 
       end
       measVals = meas_values{k}(compIdxMeas);   % measurements restricted to simulation grid
-      simVals  = simNominal(compIdxSim, k);        % simulations restricted to measurement grid
-      resvecs{k} = measVals - simVals;          % residuals
+      simVals  = simNominal(compIdxSim, k);     % simulations restricted to measurement grid
+      resvecs{k} = simVals - measVals;          % residuals
       if (FPEX0setup.debugMode.showProgress)
          showProgress(meas_T{k}, simVals, measVals, resvecs{k}, meas_count, k);
       end
-   end
-
-   
+   end   
    % concatenate to residual vector
    resvec = vertcat( resvecs{:} );
 
    % stop time measurement
    time_resvec = toc(resvecTICid);
+   
+   
+   % Jacobian, if requested
+   jacobianTICid = tic();
+   if calcJacobian
+      % evaluate jacobian at all heating rates
+      jacobian = deval(solJacobian, meas_rates);
+      for k = 1:meas_count
+         jj = reshape(jacobian(:,k), N, np);  % jacobian for measurement k
+         jj = jj(compIdxSim, :);              % restrict to measurement grid
+         jacs{k} = jj;
+%          X{k}       = jacobian((k-1)*N+compIdxSim, :);
+      end
+      jacobian = vertcat(jacs{:});
+   end
+   time_jacobian = toc(jacobianTICid);
    
    % store some statistics in settings closure
    % FPEX0.sim.time_resvec = time_resvec;

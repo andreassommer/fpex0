@@ -22,15 +22,18 @@ function fitsol = FPEX0_exampleFit()
 FPEX0setup = FPEX0_exampleSetup();
 
 % modify some configuration (as example)
-FPEX0setup.Integration.options.RelTol = 1.0d-8;
-FPEX0setup.Integration.options.AbsTol = 1.0d-16;
+FPEX0setup.Integration.options.RelTol = 1.0d-6;
+FPEX0setup.Integration.options.AbsTol = 1.0d-12;
+FPEX0setup.Integration.VDEoptions.RelTol = 1.0d-4;
+FPEX0setup.Integration.VDEoptions.AbsTol = 1.0d-12;
+
 
 % import the example data
 FPEX0setup = FPEX0_importExampleMeasurements(FPEX0setup, 2); % 2 = gridskip
 
 % solve the fitting problem
 tic
-fitsol = FPEX0_fit(FPEX0setup, 'optimizer', 'lsqnonlinFD');
+fitsol = FPEX0_fit(FPEX0setup, 'optimizer', 'lsqnonlin');
 toc
 
 % finito

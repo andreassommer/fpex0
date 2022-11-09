@@ -13,7 +13,7 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
    % code@andreas-sommer.eu
    
    % defaults
-   optimizer = 'lsqnonlinFD';
+   optimizer = 'lsqnonlin';
 
    % process input arguments
    if hasOption(varargin, 'optimizer') ,  optimizer = getOption(varargin, 'optimizer');  end
@@ -53,15 +53,15 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
       case 'LSQNONLINFD'
          % ============= Derivative-based solver not a good idea, as FD will probably fail for the PDE solutions
          lsqnonlin_opts = optimoptions(@lsqnonlin);
-         lsqnonlin_opts.SpecifyObjectiveGradient = false;
-         lsqnonlin_opts.CheckGradients           = false;
+         lsqnonlin_opts.SpecifyObjectiveGradient = false;      % jacobian is built by calcresvec
+         lsqnonlin_opts.CheckGradients           = false;      % the FD approximation is too poor to verify anything
          lsqnonlin_opts.UseParallel              = true;       % initialize pool via parpool(n) 
          lsqnonlin_opts.Diagnostics              = 'on';
          lsqnonlin_opts.FunValCheck              = 'on';
          lsqnonlin_opts.MaxFunctionEvaluations   = 100000;
          lsqnonlin_opts.StepTolerance            = 1.0d-6;
          lsqnonlin_opts.FunctionTolerance        = 1.0d-8;
-         lsqnonlin_opts.OptimalityTolerance      = 5.0;        % quite high, but okay for FD
+         lsqnonlin_opts.OptimalityTolerance      = 5;          % quite high, but okay for FD
          lsqnonlin_opts.Display                  = 'iter-detailed';
          lsqnonlin_opts.TypicalX                 = p_0;
          lsqnonlin_opts.SubproblemAlgorithm      = 'factorization';
@@ -74,12 +74,13 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
          displayResult(x, resnorm);
          
       case 'LSQNONLIN'
-         error('Derivatives not available. Choose LSQNONLINFD instead.')
          % ============= Using SOLVIND derivatives
          lsqnonlin_opts = optimoptions(@lsqnonlin);
-         lsqnonlin_opts.SpecifyObjectiveGradient = true;
-         lsqnonlin_opts.CheckGradients           = false;
-         lsqnonlin_opts.UseParallel              = false;
+         lsqnonlin_opts.SpecifyObjectiveGradient = true;       % jacobian is built by calcresvec
+         lsqnonlin_opts.CheckGradients           = false;      % the FD approximation is too poor to verify anything
+         lsqnonlin_opts.UseParallel              = true;       % no benefit with analytic jacobian, but it does not hurt
+         lsqnonlin_opts.Diagnostics              = 'on';
+         lsqnonlin_opts.FunValCheck              = 'on';
          lsqnonlin_opts.StepTolerance            = 1.0d-6;
          lsqnonlin_opts.FunctionTolerance        = 1.0d-10;
          lsqnonlin_opts.OptimalityTolerance      = 1.0d-1;
@@ -105,15 +106,15 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
          % keyboard
          fmincon_opts = optimoptions('fmincon');
          fmincon_opts.Algorithm                = 'interior-point';  %'interior-point'; %'sqp'  %'active-set';
-         fmincon_opts.SpecifyObjectiveGradient = false;  % no derivatives yet
+         fmincon_opts.SpecifyObjectiveGradient = false;             % no derivatives yet
          fmincon_opts.Display                  = 'iter-detailed';
          fmincon_opts.StepTolerance            = 1.0d-8;
          fmincon_opts.FunctionTolerance        = 1.0d-10;
-         fmincon_opts.OptimalityTolerance      = 1.0d-3;    % differs from lsqnonlin
+         fmincon_opts.OptimalityTolerance      = 1.0d-3;            % differs from lsqnonlin
          fmincon_opts.CheckGradients           = true;
          fmincon_opts.TypicalX                 = p_0;
          fmincon_opts.UseParallel              = true;
-         fmincon_opts.FiniteDifferenceType     = 'central';  % slower, but accuracy needed
+         fmincon_opts.FiniteDifferenceType     = 'central';         % slower, but accuracy needed
          fmincon_opts.OutputFcn                = @optimizer_outfun;  
          fmincon_opts.MaxIterations            = 1000;
          [x,fval,exit,out,lambda,grad,hessian] ...
@@ -147,7 +148,6 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
          displayResult(p_0, resnorm);
          
       case {'DERIVTEST'}
-         error('Derivatives not yet available.');
          % For testing the derivatives:
          [F, J] = resvecfun(p_0);
          for k = 1:length(p_0)
@@ -155,13 +155,13 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
             FD_p = p_0; FD_p(k) = FD_p(k) + FD_h;   % modified parameter
             FD_F = resvecfun(FD_p);                 % evaluate
             FD_J = (FD_F - F) / FD_h;               % FD approximation 
-            figure(22); clf; plot(J(:,k),'-'); hold on; plot(FD_J,'.'); drawnow;
-            fprintf('Displaying derivative for parameter #%d.\n', k); 
-            pause
+            figure(22); clf; plot(J(:,k),'-'); hold on; plot(FD_J,'.'); 
+            title(sprintf('Displaying derivative for parameter #%d.\n', k));
+            drawnow; pause
          end
          resnorm = norm(F);
          fitsol = struct('x',p_0,'resnorm',resnorm);
-         displayResult(x)
+         displayResult(p_0, resnorm);
          
       otherwise
          error('Unknown optimizer: %s', optimizer);
