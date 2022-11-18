@@ -31,7 +31,7 @@ function out = FokkerPlanckVDE(t, sol_u, Gp, h, driftParams, diffusionParams, be
    %
    %
    % INPUT:           t --> time
-   %              sol_u --> nominal solution as matlab sol object
+   %              sol_u --> nominal solution as matlab function handle or matlab sol object
    %                 Gp --> sensitivity matrix as vector (columns)
    %                  h --> MOL interval size
    %        driftParams --> parameter vector for drift function
@@ -103,8 +103,11 @@ function out = FokkerPlanckVDE(t, sol_u, Gp, h, driftParams, diffusionParams, be
    Gp = reshape(Gp, N, np);
    
    % evaluate nominal solution
-   % u = eval(sol_u, t); % deval is slow - but do we have a choice?
-   u = sol_u(t);         % see function make_VDErhsFcn() in FPEX0_class_setup.m
+   if isstruct(sol_u)
+      u = deval(sol_u, t); % deval is slow - but do we have a choice?
+   else
+      u = sol_u(t);        % see function make_VDErhsFcn() in FPEX0_class_setup.m
+   end
    
    % get the required quantities from FokkerPlanckODE:
    if calcJacobian

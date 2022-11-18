@@ -19,7 +19,7 @@ JPattern = spdiags([e e e], -1:1, N, N);
 % initial distribution, drift, diffusion
 mu    = 130;
 sigma = 3.5;
-u0    = reshape( normpdf(xgrid, mu, sigma) , [], 1 );
+u0    = reshape( Xnormpdf(xgrid, mu, sigma) , [], 1 );
 driftParams     = [ 1e-6  -1e-4 ]; 
 diffusionParams = [ 1e-6  1e-4 ];
 
@@ -74,4 +74,10 @@ end
 % finito
 return
 
+
+% helper
+   function y = Xnormpdf(x, mu, sigma)
+      y = exp(-0.5 * ((x - mu)./sigma).^2) ./ (sqrt(2*pi) .* sigma);
+   end
 end
+

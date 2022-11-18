@@ -1,6 +1,6 @@
 %function test_VDE()
 
-% simple tester for VDE
+% simple per for VDE
 
 FPEX0setup = FPEX0_exampleSetup();
 FPEX0setup.Integration.options.Stats = 'on';
@@ -118,6 +118,7 @@ for i = 1:np
       plot(psensFD{i}  (compGridIndices(k),:), 'r' , 'DisplayName', 'FD' );
       plot(psensVDE{i} (compGridIndices(k),:), 'b' , 'DisplayName', 'VDE');
       plot(XpsensVDE{i}(compGridIndices(k),:), 'c:', 'DisplayName', 'VDE_X');
+      legend('show')
    end
    pause
 end
