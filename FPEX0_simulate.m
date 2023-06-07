@@ -1,5 +1,5 @@
 function [NOM_sol, SENS_sol] = FPEX0_simulate(FPEX0setup, p)
-  % sol = FPEX0_simumlate(FPEX0setup, p)
+  % sol = FPEX0_simulate(FPEX0setup, p)
   % [sol, solPSENS] = FPEX0_simumlate(FPEX0setup, p)
   %
   % Simulates Fokker-Planck with specified parameters for 
