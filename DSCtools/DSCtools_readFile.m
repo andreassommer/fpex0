@@ -21,7 +21,7 @@ function dataStruct = DSCtools_readFile(fileSpec)
    % NOTE: I don't have any documentation about the file format. Everything is done by reverse-engineering.
    %       Use at your own risk and proceed with fingers crossed.
    %
-   % Author:  Andreas Sommer, Mar2017, Aug2022
+   % Author: Andreas Sommer  --  Mar2017, Aug2022, Jun2026
    % andreas.sommer@iwr.uni-heidelberg.de
    % code@andreas-sommer.eu
    %

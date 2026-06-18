@@ -30,7 +30,7 @@ if length(dscdata) > 1
    return
 end
 
-% extract and store quick accessors
+% extract and store quick accessors -- does not add to memory footprint unless modified!
 [t, T, uV, sf, mW] = DSCtools_quickAccessors(dscdata.rawData.dataMat, Tmin, Tmax);
 dscdata.data.t  = t;
 dscdata.data.T  = T;

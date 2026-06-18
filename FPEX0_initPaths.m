@@ -19,7 +19,7 @@
 [xTMPselfpath, ~, ~] = fileparts(which('FPEX0_initPaths.m'));
 
 % access global path settings
-global FPEX0paths
+global FPEX0paths      %#ok<GVMIS>
 
 % setup
 FPEX0paths.base = xTMPselfpath;  % global base directory

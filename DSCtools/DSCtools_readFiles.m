@@ -1,16 +1,16 @@
-function dataStruct = DSCtools_readFiles(fileSpecs)
-   % function data = DSCtools_readFiles(fileSpecs)
+function dscdata = DSCtools_readFiles(fileSpecs)
+   % function dscdata = DSCtools_readFiles(fileSpecs)
    %
    % Reads specified DSCtools CSV files and stores everything in dataStruct.
    %
    % INPUT:     fileSpec --> 1) cell array of strings describing the file paths and names
    %                         2) a single string describing the files to load in wildcard form (e.g. 'DSC*.csv');
    %
-   % OUTPUT:  dataStruct --> Struct array with contents as read by DSCtools_readFile.
+   % OUTPUT:     dscdata --> Struct array with contents as read by DSCtools_readFile.
    %                         See there for documentation.
    %
    %
-   % Author:  Andreas Sommer, Mar2017, Aug2022
+   % Author: Andreas Sommer  --  Mar2017, Aug2022, Jun2026
    % andreas.sommer@iwr.uni-heidelberg.de
    % code@andreas-sommer.eu
    %
@@ -31,7 +31,7 @@ function dataStruct = DSCtools_readFiles(fileSpecs)
    for k = 1:count
       fileSpec = fileSpecs{k};
       try
-         fprintf('Reading %s\n', fileSpec);
+         fprintf('Reading %s  [%d/%d]\n', fileSpec, k, count);
          contents = DSCtools_readFile(fileSpec);
       catch err
          warning('\nWhile reading %s, caught error: %s. SKIPPING FILE!', fileSpec, err.message);
@@ -42,7 +42,7 @@ function dataStruct = DSCtools_readFiles(fileSpecs)
    
    % transfer them into single array
    nonEmptyIdx = ~cellfun(@isempty, dataStructs);
-   dataStruct  = cell2mat(dataStructs(nonEmptyIdx));
+   dscdata  = cell2mat(dataStructs(nonEmptyIdx));
    
    
 end

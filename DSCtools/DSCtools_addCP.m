@@ -25,7 +25,7 @@ function DSCsample = DSCtools_addCP(DSCsample, DSCreference, Tmin, Tmax, signals
 
 
 % import settings
-global DSCTOOLS_GLOBAL_SETTINGS
+global DSCTOOLS_GLOBAL_SETTINGS                  %#ok<GVMIS>
 
 debugMode   = getSetting(DSCTOOLS_GLOBAL_SETTINGS, 'addCP_debugMode'  , true);  % more verbosity?
 scaleByMass = getSetting(DSCTOOLS_GLOBAL_SETTINGS, 'addCP_scaleByMass', true);  % multiply signaly by mass (signals are often normed to mass 1)
