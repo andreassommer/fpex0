@@ -13,8 +13,8 @@
 global FPEX0
 
 % Baseline-Generation: enable/disable halt on warnings
-global DSC204_getBaseline_haltOnWarning
-DSC204_getBaseline_haltOnWarning = true;
+global DSCtools_getBaseline_haltOnWarning
+DSCtools_getBaseline_haltOnWarning = true;
 
 
 % Select measurement files / file mask
@@ -25,8 +25,8 @@ dscdatafilemask   = fullfile(measdir, 'Messungen', sprintf('ExpDat_16-4*%sKorr*_
 referencefilemask = fullfile(measdir, 'Waermekapazitaet_Saphirmessung', 'Sap-Kurve_10Kmin_H_Segment_7.csv');
 
 % load dsc data
-dscdata = DSC204_readFiles(dscdatafilemask);
-dscdata = DSC204_sortByHeatrate(dscdata, 'ascend');
+dscdata = DSCtools_readFiles(dscdatafilemask);
+dscdata = DSCtools_sortByHeatrate(dscdata, 'ascend');
 
 % DEBUG: remove 0,3K/min measurements (they contain unreliable temperatures with multiple same values)
 idx03   = [dscdata.rate]==0.3 ;  % indices of 0.3 K/min measurements (testing for equality works here)
@@ -43,13 +43,13 @@ for k=1:length(dscdata)
    if ismember(dscdata(k).ID, smoothIDs) && (dscdata(k).rate == 0.6)
       fprintf('DEBUG: Applying smoothing to ID %s\n', dscdata(k).ID);
       dscdata(k).data.uV = smoothdata(dscdata(k).data.uV, 'sgolay', 75);   % smooth the uV signal
-      dscdata(k) = DSC204_addQuickAccessors(dscdata(k), -inf, +inf);       % update quick accessors
+      dscdata(k) = DSCtools_addQuickAccessors(dscdata(k), -inf, +inf);       % update quick accessors
    end
 end
 
 % load saphire (reference) dsc data
-dscsaphire = DSC204_readFiles(referencefilemask);
-dscsaphire = DSC204_sortByHeatrate(dscsaphire, 'ascend');
+dscsaphire = DSCtools_readFiles(referencefilemask);
+dscsaphire = DSCtools_sortByHeatrate(dscsaphire, 'ascend');
 
 % add cp curves
-dscdata = DSC204_addCP(dscdata, dscsaphire);
+dscdata = DSCtools_addCP(dscdata, dscsaphire);

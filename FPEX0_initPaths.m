@@ -38,9 +38,9 @@ end
 
 % PATHS PREPARATIONS
 % ==================
-FPEX0paths.DSC204       = fullfile(FPEX0paths.base, './DSC204');       % tools for DSC204 data processing
+FPEX0paths.DSCtools       = fullfile(FPEX0paths.base, './DSCtools');       % tools for DSCtools data processing
 FPEX0paths.mmtools      = fullfile(FPEX0paths.base, './mmtools');      % miscellaneous matlab tools
-%FPEX0paths.measurements = fullfile(FPEX0paths.base, '../DSC204_F1_Phoenix_Messungen'); % paths to measurements
+%FPEX0paths.measurements = fullfile(FPEX0paths.base, '../DSCtools_F1_Phoenix_Messungen'); % paths to measurements
 %FPEX0paths.whatever     = fullfile(FPEX0config.base,'./whatever');     % add whatever path is needed
 
 
@@ -75,8 +75,8 @@ requiredSubmodules = {{'mmtools', 'makeClosure.m'}};
 ensureSubmodule(requiredSubmodules);
 
 
-% activate the DSC204 settings
-DSC204_settings('ACTIVATE');
+% activate the DSCtools settings
+DSCtools_settings('ACTIVATE');
 
 
 % cleanup
