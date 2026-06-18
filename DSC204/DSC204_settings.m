@@ -60,15 +60,15 @@ argList  = varargin;
 argCount = length(argList);
 if mod(argCount, 2) == 1; error('Invalid number of arguments'); end
 % REPLACEMENT?
-if hasOption(argList, 'replace')
-   replaceCurrentSettings = getOption(argList, 'replace'); 
-   argList  = removeOption(argList, 'replace');
+if olHasOption(argList, 'replace')
+   replaceCurrentSettings = olGetOption(argList, 'replace'); 
+   argList  = olRemoveOption(argList, 'replace');
    argCount = argCount - 2;
 end
 % UPDATES?
-if hasOption(varargin, 'update')
-   updateCurrentSettings = getOption(argList, 'update');
-   argList  = removeOption(argList, 'update'); 
+if olHasOption(varargin, 'update')
+   updateCurrentSettings = olGetOption(argList, 'update');
+   argList  = olRemoveOption(argList, 'update'); 
    argCount = argCount - 2;
 end
 

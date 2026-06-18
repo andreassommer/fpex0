@@ -35,12 +35,12 @@ function sigfun = getSigmoidalBaselevelFunction(T,X,varargin)
    steepness = 1.5;    % for sigmoidal
    
    % process input args
-   if hasOption(varargin, 'lin1start'), lin1start = getOption(varargin, 'lin1start'); end
-   if hasOption(varargin, 'lin1end'),   lin1end   = getOption(varargin, 'lin1end');   end
-   if hasOption(varargin, 'lin2start'), lin2start = getOption(varargin, 'lin2start'); end
-   if hasOption(varargin, 'lin2end'),   lin2end   = getOption(varargin, 'lin2end');   end
-   if hasOption(varargin, 'steepness'), steepness = getOption(varargin, 'steepness'); end
-   if hasOption(varargin, 'midpoint'),  midpoint  = getOption(varargin, 'midpoint');  end
+   if olHasOption(varargin, 'lin1start'), lin1start = olGetOption(varargin, 'lin1start'); end
+   if olHasOption(varargin, 'lin1end'),   lin1end   = olGetOption(varargin, 'lin1end');   end
+   if olHasOption(varargin, 'lin2start'), lin2start = olGetOption(varargin, 'lin2start'); end
+   if olHasOption(varargin, 'lin2end'),   lin2end   = olGetOption(varargin, 'lin2end');   end
+   if olHasOption(varargin, 'steepness'), steepness = olGetOption(varargin, 'steepness'); end
+   if olHasOption(varargin, 'midpoint'),  midpoint  = olGetOption(varargin, 'midpoint');  end
 
    % assert necessary information is given
    if isempty(lin1end) || isempty(lin2start) 

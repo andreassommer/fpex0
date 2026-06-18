@@ -32,12 +32,12 @@ firstN = 10;    firstT = T(1);      firstTidx = [];
 lastN  = 10;    lastT  = T(end);    lastTidx  = [];
 
 % config 
-if hasOption(varargin,'firstN'),       firstN = getOption(varargin,'firstN');    end
-if hasOption(varargin,'firstT'),       firstT = getOption(varargin,'firstT');    end
-if hasOption(varargin,'firstTidx'), firstTidx = getOption(varargin,'firstTidx'); end
-if hasOption(varargin,'lastN'),         lastN = getOption(varargin,'lastN');     end
-if hasOption(varargin,'lastT'),         lastT = getOption(varargin,'lastT');     end
-if hasOption(varargin,'lastTidx'),   lastTidx = getOption(varargin,'lastTidx');  end
+if olHasOption(varargin,'firstN'),       firstN = olGetOption(varargin,'firstN');    end
+if olHasOption(varargin,'firstT'),       firstT = olGetOption(varargin,'firstT');    end
+if olHasOption(varargin,'firstTidx'), firstTidx = olGetOption(varargin,'firstTidx'); end
+if olHasOption(varargin,'lastN'),         lastN = olGetOption(varargin,'lastN');     end
+if olHasOption(varargin,'lastT'),         lastT = olGetOption(varargin,'lastT');     end
+if olHasOption(varargin,'lastTidx'),   lastTidx = olGetOption(varargin,'lastTidx');  end
 
 % find indices of first-T and last-T
 if isempty(firstTidx), [~,firstTidx] = min(abs(T-firstT)); end

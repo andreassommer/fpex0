@@ -16,7 +16,7 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
    optimizer = 'lsqnonlin';
 
    % process input arguments
-   if hasOption(varargin, 'optimizer') ,  optimizer = getOption(varargin, 'optimizer');  end
+   if olHasOption(varargin, 'optimizer') ,  optimizer = olGetOption(varargin, 'optimizer');  end
 
    
    % integration grid(s)

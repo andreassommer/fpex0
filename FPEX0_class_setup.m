@@ -51,7 +51,7 @@ methods
       setup.IniDistFcn     = IniDistFcn;
       
       % walk through additional arguments
-      if hasOption(varargin, 'enforceNonNeg'), setup.enforceNonNeg = getOption(varargin, 'enforceNonNeg'); end
+      if olHasOption(varargin, 'enforceNonNeg'), setup.enforceNonNeg = olGetOption(varargin, 'enforceNonNeg'); end
 
       % transfer the maximum heat rate from Grid
       setup.betamax = max(setup.Grid.gridTdot);
