@@ -71,8 +71,8 @@ for xTMPfieldname = fieldnames(FPEX0paths)'
 end
 
 % ensure required packages are available
-requiredSubmodules = {{'mmtools', 'makeClosure.m'}};
-ensureSubmodule(requiredSubmodules);
+xTMPrequiredSubmodules = {{'mmtools', 'makeClosure.m'}};
+ensureSubmodule(xTMPrequiredSubmodules);
 
 
 % activate the DSCtools settings
@@ -83,6 +83,7 @@ DSCtools_settings('ACTIVATE');
 clear xTMPfullpath 
 clear xTMPfieldname
 clear xTMPselfpath
+clear xTMPrequiredSubmodules
 
 % finito
 return
