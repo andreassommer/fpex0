@@ -4,7 +4,7 @@ function [DSCdata, sortidx] = DSCtools_sortByHeatrate(DSCdata, mode)
 % Sorts DSCdata struct array by heatrate (field "rate")
 %
 % INPUT:   DSCdata --> DSC data structure as returned by DSCtools_readFile
-%             mode --> 'ascend' or 'descend', passed to sort()
+%             mode --> 'ascend' or 'descend', passed to sort()   [default: 'ascend']
 %
 % OUTPUT:  DSCdata --> sorted DSC data structure
 %          sortidx --> indices as returned by sort();
