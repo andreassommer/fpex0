@@ -1,7 +1,7 @@
-function [DSCdata, sortidx] = DSCtools_sortByHeatrate(DSCdata, mode)
-% DSCdata = DSCtools_sortByHeatrate(DSCdata, mode)
+function [DSCdata, sortidx] = DSCtools_sortByMass(DSCdata, mode)
+% DSCdata = DSCtools_sortByMass(DSCdata)
 %
-% Sorts DSCdata struct array by heatrate (field "rate")
+% Sorts DSCdata struct array by sample mass (field "mass")
 %
 % INPUT:   DSCdata --> DSC data structure as returned by DSCtools_readFile
 %             mode --> 'ascend' or 'descend', passed to sort()   [default: 'ascend']
@@ -9,7 +9,7 @@ function [DSCdata, sortidx] = DSCtools_sortByHeatrate(DSCdata, mode)
 % OUTPUT:  DSCdata --> sorted DSC data structure
 %          sortidx --> indices as returned by sort();
 %
-% Author: Andreas Sommer, Aug2022
+% Author: Andreas Sommer, Jun2026
 % andreas.sommer@iwr.uni-heidelberg.de
 % email@andreas-sommer.eu
 
@@ -19,8 +19,8 @@ if (nargin < 2)
 end
 
 % extract the rates and sort
-rates = [DSCdata.rate];
-[~, sortidx] = sort(rates, mode);
+masses = [DSCdata.mass];
+[~, sortidx] = sort(masses, mode);
 DSCdata = DSCdata(sortidx);
 
 end
