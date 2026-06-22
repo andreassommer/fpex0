@@ -97,9 +97,9 @@ function id = make_id_from_description(DSCsample)
    count = length(DSCsample);
    id = cell(count, 1);
    for k = 1:count
-      samp = DSCsample(k).rawData.desc.SAMPLE;
-      mass = DSCsample(k).rawData.desc.SAMPLEMASSmg;
-      rate = DSCsample(k).rawData.Tinfo.Tstep;
+      samp = DSCsample(k).desc.SAMPLE;
+      mass = DSCsample(k).desc.SAMPLEMASSmg;
+      rate = DSCsample(k).Tinfo.Tstep;
       id{k} = sprintf('%s__%smg__rate%+5.2f', samp, mass, rate);
    end
    % if there are multiple with the same ID now, add unique number to each
