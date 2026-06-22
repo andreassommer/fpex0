@@ -31,7 +31,7 @@ function dscdata = DSCtools_readFiles(fileSpecs)
    for k = 1:count
       fileSpec = fileSpecs{k};
       try
-         fprintf('Reading %s  [%d/%d]\n', fileSpec, k, count);
+         makeMessage('Reading %s  [%d/%d]\n', fileSpec, k, count);
          contents = DSCtools_readFile(fileSpec);
       catch err
          warning('\nWhile reading %s, caught error: %s. SKIPPING FILE!', fileSpec, err.message);

@@ -45,7 +45,7 @@ function varargout = frasersuzuki_symbolic(x,p)
    
    % Generate derivatives once
    if isempty(initialized) || (nargin == 0)
-      fprintf('frasersuzuki.m: Initializing partial derivatives... ');
+      makeMessage('frasersuzuki.m: Initializing partial derivatives... ');
       syms sym_r sym_h sym_z sym_wr sym_sr sym_x 
       sym_f = symfun( sym_h .* exp(-(log(sym_r))./(log(sym_sr).^2) * log(((sym_x-sym_z).*(sym_sr.^2-1))./(sym_wr.*sym_sr) + 1).^2)  , ...
                       [sym_x sym_r sym_h sym_z sym_wr sym_sr]) ;  % order of variables
@@ -55,7 +55,7 @@ function varargout = frasersuzuki_symbolic(x,p)
       sym_dfdwr = diff(sym_f,sym_wr);
       sym_dfdsr = diff(sym_f,sym_sr);
       sym_dfdx  = diff(sym_f,sym_x);
-      fprintf('Transforming into matlab functions... ');
+      makeMessage('Transforming into matlab functions... ');
       fun_f     = matlabFunction(sym_f);
       fun_dfdr  = matlabFunction(sym_dfdr);
       fun_dfdh  = matlabFunction(sym_dfdh);
@@ -63,7 +63,7 @@ function varargout = frasersuzuki_symbolic(x,p)
       fun_dfdwr = matlabFunction(sym_dfdwr);
       fun_dfdsr = matlabFunction(sym_dfdsr);
       fun_dfdx  = matlabFunction(sym_dfdx);
-      fprintf('Done!\n');
+      makeMessage('Done!\n');
       initialized = true;
       if (nargin==0), return; end
    end

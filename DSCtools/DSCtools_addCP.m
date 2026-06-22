@@ -46,7 +46,7 @@ if length(DSCsample) > 1
 end
 
 % display setup
-if debugMode, fprintf('DSCtools_addCP:  Using signal source "%s", Tmin=%g, Tmax=%g\n', signalsource, Tmin, Tmax); end
+if debugMode, makeMessage('DSCtools_addCP:  Using signal source "%s", Tmin=%g, Tmax=%g\n', signalsource, Tmin, Tmax); end
 
 % retrieve the heating rates
 betaS = DSCsample.rate;
@@ -54,17 +54,17 @@ betaR = [DSCreference.rate]; % possibly a vector
 
 % reference rates not unique?
 if not( length(betaR) == length(unique(betaR)) )
-   fprintf('DSCtools_addCP: Reference heat rates not unique! rate vector = [%s]\n', num2str(betaR));
+   makeMessage('DSCtools_addCP: Reference heat rates not unique! rate vector = [%s]\n', num2str(betaR));
    error('Reference heat rates not unique!')
 end
 
 % if multiple references are given, choose the one closest to the sample heat rate
 if length(DSCreference) > 1
-   if debugMode, fprintf('DSCtools_addCP: Multiple references given; looking for heat rate beta=%g. ', betaS); end
+   if debugMode, makeMessage('DSCtools_addCP: Multiple references given; looking for heat rate beta=%g. ', betaS); end
    [~, refidx] = min(abs(betaR - betaS));
    DSCreference = DSCreference(refidx);
    betaR = DSCreference.rate;
-   if debugMode, fprintf('Chosen reference rate: %g  (at index = %d)\n', betaR, refidx); end
+   if debugMode, makeMessage('Chosen reference rate: %g  (at index = %d)\n', betaR, refidx); end
 end
 
 
@@ -72,7 +72,7 @@ end
 % FROM HERE:  DSCreference is a SINGLE (ONE-ELEMENT) structure
 
 
-fprintf('DSCtools_addCP: Processing %s: ', DSCsample.ID);
+makeMessage('DSCtools_addCP: Processing %s: ', DSCsample.ID);
 
 
 % Variable naming: AB
@@ -103,7 +103,7 @@ minTR = min(TR);   maxTR = max(TR);
 % issue a warning if Tmax or Tmin exceeds reference or sample temperature range
 if ( Tmin < max(minTS,minTR)  ||  Tmax > min(maxTS,maxTR) )
    if debugMode
-      fprintf(' [ Tmin | minTS | minTR = %g | %g | %g  Tmax | maxTS | maxTR = %g | %g | %g ] ', ...
+      makeMessage(' [ Tmin | minTS | minTR = %g | %g | %g  Tmax | maxTS | maxTR = %g | %g | %g ] ', ...
          Tmin, minTS, minTR, Tmax, maxTS, maxTR);
    end
    if TrangeWarn
@@ -194,6 +194,6 @@ DSCsample.cp = cp;
 % xShowBaseline(DSCsample);
 
 % message
-fprintf(' Done processing %s.\n', DSCsample.ID);
+makeMessage(' Done processing %s.\n', DSCsample.ID);
 
 end

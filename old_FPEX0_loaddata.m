@@ -41,7 +41,7 @@ else
 end
 for k=1:length(dscdata)
    if ismember(dscdata(k).ID, smoothIDs) && (dscdata(k).rate == 0.6)
-      fprintf('DEBUG: Applying smoothing to ID %s\n', dscdata(k).ID);
+      makeMessage('DEBUG: Applying smoothing to ID %s\n', dscdata(k).ID);
       dscdata(k).data.uV = smoothdata(dscdata(k).data.uV, 'sgolay', 75);   % smooth the uV signal
       dscdata(k) = DSCtools_addQuickAccessors(dscdata(k), -inf, +inf);       % update quick accessors
    end

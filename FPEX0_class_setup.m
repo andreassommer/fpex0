@@ -87,11 +87,11 @@ methods
    function FP_VDE_rhs = make_VDErhsFcn(obj, p_FPdrift, p_FPdiffusion, solNOMINAL)
       % % % Pre-evaluation and lookup is faster, but less accurate
       % np = obj.Parameters.count();
-      % fprintf('Generating lookup table... ');
+      % makeMessage('Generating lookup table... ');
       % tgrid = linspace(0, obj.betamax, 1000); 
       % umat  = deval(solNOMINAL, tgrid);
       % u_pp  = interp1(tgrid, umat.', 'linear', 'pp');
-      % fprintf('Done.\n')
+      % makeMessage('Done.\n')
       % solEvaler = @(t) ppval(u_pp,t);
       % FP_VDE_rhs = @(t,x) FokkerPlanckVDE(t, solEvaler, x, obj.Grid.h, p_FPdrift, p_FPdiffusion, obj.betamax, np, false);
       np = obj.Parameters.count();

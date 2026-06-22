@@ -75,7 +75,7 @@ for pos = runidx
    absdevB  = abs(reg.b -initreg.b);   reldevB  = abs(absdevB  / initreg.b );
    absdevS2 = abs(reg.s2-initreg.s2);  reldevS2 = abs(absdevS2 / initreg.s2);
    % DEBUG
-%    fprintf('POS = %5.d    a: %7.4f, %7.4f, %7.4f, %4.2f        b: %7.4f, %7.4f, %7.4f, %4.2f        s: %7.4g, %7.4g, %7.4f, %4.2f   \n', ...
+%    makeMessage('POS = %5.d    a: %7.4f, %7.4f, %7.4f, %4.2f        b: %7.4f, %7.4f, %7.4f, %4.2f        s: %7.4g, %7.4g, %7.4f, %4.2f   \n', ...
 %             pos,          reg.a, initreg.a, absdevA, reldevA,  reg.b, initreg.b, absdevB, reldevB,  reg.s2, initreg.s2, absdevS2, reldevS2);
    % /DEBUG
    

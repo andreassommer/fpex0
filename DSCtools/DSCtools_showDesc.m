@@ -22,20 +22,20 @@ descfields = unique(descfields, 'stable'); % keep unique, and no sorting of fiel
 % now display grouped by field names
 for n = 1:length(descfields)
    fieldname = descfields{n};
-   fprintf('\n\nField %s:\n', fieldname);
+   makeMessage('\n\nField %s:\n', fieldname);
    % walk through all DSC measurements
    count = 1;
    for k = 1:length(DSCarray)
       try
          fileSpec = DSCarray(k).fileSpec;
          content  = DSCarray(k).desc.(fieldname);
-         fprintf('  %50s: %s\n', fileSpec, content);
+         makeMessage('  %50s: %s\n', fileSpec, content);
          count = count + 1;
       catch err
-         fprintf('Ignoring error @ #%d for file %s: %s\n', n, fileSpec, err.message)
+         makeMessage('Ignoring error @ #%d for file %s: %s\n', n, fileSpec, err.message)
       end
    end
-   fprintf('Count: %d\n', count);
+   makeMessage('Count: %d\n', count);
 end
 
 

@@ -30,7 +30,7 @@ if (nargin < 3),  type = 'linear'; end
  
 
 % detect linear ranges
-fprintf('Detecting linear ranges...')
+makeMessage('Detecting linear ranges...')
 [peakVal, peakPos] = max(Y);
 initlen_L = floor(blds.L.initfraction * peakPos);
 initlen_R = floor(blds.R.initfraction * (length(X)-peakPos));
@@ -38,7 +38,7 @@ detectionArgs_L = {blds.L.reldevA, blds.L.reldevB, blds.L.reldevS2, blds.L.absde
 detectionArgs_R = {blds.R.reldevA, blds.R.reldevB, blds.R.reldevS2, blds.R.absdevA, blds.R.absdevB, blds.R.absdevS2};
 [idx_L, reg_L] = DSCtools_detectLinearRange(X,Y,'left' ,initlen_L,detectionArgs_L{:});
 [idx_R, reg_R] = DSCtools_detectLinearRange(X,Y,'right',initlen_R,detectionArgs_R{:});
-fprintf('done.')
+makeMessage('done.')
 
 % get baselevel function
 blfun = DSCtools_getBaselinePrimitive(X, Y, idx_L, reg_L.a, reg_L.b, idx_R, reg_R.a, reg_R.b, type);
@@ -47,7 +47,7 @@ blfun = DSCtools_getBaselinePrimitive(X, Y, idx_L, reg_L.a, reg_L.b, idx_R, reg_
 % small plausibility check:  slope of linear parts should be small;
 maxslope = 0.1;
 if (abs(reg_L.b) > maxslope) || (abs(reg_R.b) > maxslope)
-   fprintf('\n');
+   makeMessage('\n');
    warning('Slope of linear part is large: left: %g, right: %g. There''s probably something wrong. Using proposed baseline instead!', reg_L.b, reg_R.b)
    oldblfun = blfun;
    if (abs(reg_L.b) > maxslope); reg_L.b = 0; reg_L.a = Y(1)  ; idx_L = 2          ; end

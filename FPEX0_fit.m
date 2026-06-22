@@ -47,7 +47,7 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
    resvecfun = @(p) FPEX0_calcresvec(FPEX0setup, p);
      
    % optimization
-   fprintf('\nStarting:  %s\n', optimizer)
+   makeMessage('\nStarting:  %s\n', optimizer)
    switch upper(optimizer)
       
       case 'LSQNONLIN'
@@ -217,9 +217,9 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
 
    % display parameter vector
    function displayResult(p,resnorm)
-      fprintf('Parameter set:  p = [ ');
-      fprintf(' %10.5f ', p);
-      fprintf('];   %% residual norm: %g\n', resnorm);
+      makeMessage('Parameter set:  p = [ ');
+      makeMessage(' %10.5f ', p);
+      makeMessage('];   %% residual norm: %g\n', resnorm);
    end
 
 

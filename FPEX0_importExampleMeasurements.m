@@ -27,11 +27,11 @@ end
 
 
 % load example data from file
-fprintf('Loading example data . . . ');
+makeMessage('Loading example data . . . ');
 exdatafile = 'ExampleMeasurements.mat';
 exdata = load(exdatafile,'exdata'); % load data
 exdata = exdata.exdata;             % unwrap data
-fprintf('Loaded.\n');
+makeMessage('Loaded.\n');
 
 % select only specific experiment by ID
 targetID  = '16-407';
@@ -39,10 +39,10 @@ targetIdx = arrayfun(@(x) strcmp(x.ID,targetID), exdata);
 exdata    = exdata(targetIdx);
 
 % register data in FPEX0setup
-fprintf('Importing example measurements to FPEX0setup . . .');
+makeMessage('Importing example measurements to FPEX0setup . . .');
 for k = 1:length(exdata)
    FPEX0setup.importMeasurements(exdata(k).ID, exdata(k).rate, exdata(k).cp.T, exdata(k).cp.latentdata, gridskip);
    % cp.latentdata contains the cp values without baseline
 end
-fprintf('Imported.\n');
+makeMessage('Imported.\n');
 

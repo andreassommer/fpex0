@@ -15,10 +15,10 @@ function FPEX0_showError(msg, err)
 %
 
 
-fprintf('ERROR: %s\n', msg);
+makeMessage('ERROR: %s\n', msg);
 if (nargin >= 2)
-   fprintf('Error id    : %s\n', err.identifier);
-   fprintf('Error string: %s\n', err.message);
+   makeMessage('Error id    : %s\n', err.identifier);
+   makeMessage('Error string: %s\n', err.message);
 end
 
 

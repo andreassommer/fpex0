@@ -7,20 +7,20 @@ FPEX0setup = FPEX0_importExampleMeasurements(FPEX0setup, 2); % 2 = gridskip
 
 
 % evaluate residual vector on nominal parameter values
-fprintf('Evaluating residual vector . . . ');
+makeMessage('Evaluating residual vector . . . ');
 p0     = FPEX0setup.Parameters.p0;
 resvec = FPEX0_calcresvec(FPEX0setup, p0);
-fprintf('Evaluated.\n');
-fprintf('Norm of residual vector: %g\n', norm(resvec));
-fprintf('\n')
+makeMessage('Evaluated.\n');
+makeMessage('Norm of residual vector: %g\n', norm(resvec));
+makeMessage('\n')
 
 % evaluate with jacobian
-fprintf('Evaluating residual vector with jacobian. . . ');
+makeMessage('Evaluating residual vector with jacobian. . . ');
 p0     = FPEX0setup.Parameters.p0;
 [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p0);
-fprintf('Evaluated.\n');
-fprintf('Norm of residual vector: %g\n', norm(resvec));
-fprintf('\n')
+makeMessage('Evaluated.\n');
+makeMessage('Norm of residual vector: %g\n', norm(resvec));
+makeMessage('\n')
 
 
 % finito

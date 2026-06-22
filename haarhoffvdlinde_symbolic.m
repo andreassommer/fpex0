@@ -42,7 +42,7 @@ function varargout = haarhoffvdlinde_symbolic(x,p)
    
    % Generate derivatives ones
    if isempty(sym_dfdx) || (ischar(x) && strcmpi(x,'init'))
-      fprintf('haarhoffvdlinde.m: Initializing partial derivatives... ');
+      makeMessage('haarhoffvdlinde.m: Initializing partial derivatives... ');
       syms a0 a1 a2 a3 xx 
       sym_f = symfun(   ((a0 .* a2.^2) ./ (a1 .* a3 .* a2 .* sqrt(2*pi)) .* exp( - (xx-a1).^2 ./ (2 * a2.^2)) ) ...
                      ./ (1 ./ (exp(a1.*a3./a2.^2)-1) + 0.5 + 0.5*erf((xx-a1)./(a2*sqrt(2)))  )  ...
@@ -52,14 +52,14 @@ function varargout = haarhoffvdlinde_symbolic(x,p)
       sym_dfda2 = diff(sym_f,a2);
       sym_dfda3 = diff(sym_f,a3);
       sym_dfdx  = diff(sym_f,xx); % unused !
-      fprintf('Transforming into matlab functions... ');
+      makeMessage('Transforming into matlab functions... ');
       fun_f     = matlabFunction(sym_f);
       fun_dfda0 = matlabFunction(sym_dfda0);
       fun_dfda1 = matlabFunction(sym_dfda1);
       fun_dfda2 = matlabFunction(sym_dfda2);
       fun_dfda3 = matlabFunction(sym_dfda3);
       fun_dfdx  = matlabFunction(sym_dfdx);
-      fprintf('Done!\n');
+      makeMessage('Done!\n');
    end
 
    

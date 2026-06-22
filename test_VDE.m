@@ -42,7 +42,7 @@ disp('===== NOMINAL =====')
 tic();
 solNOMINAL = FPEX0_simulate(FPEX0setup, pvec);
 tt = toc();
-fprintf('--- Took %gs\n', tt);
+makeMessage('--- Took %gs\n', tt);
 u_NOMINAL = deval(solNOMINAL, compGridTdot);
 
 
@@ -70,7 +70,7 @@ disp('===== VDE =====')
 tic
 solVDE = VDEintegrator(FP_VDE_rhs, t0tf, Gp0, VDEoptions);
 tt = toc();
-fprintf('--- Took %gs\n', tt);
+makeMessage('--- Took %gs\n', tt);
 
 % evaluate VDE
 uu_VDE = deval(solVDE, compGridTdot);
@@ -85,9 +85,9 @@ disp('===== NOMINAL and VDE with simulate() =====')
 tic();
 [XsolNOMINAL, XsolSENS] = FPEX0_simulate(FPEX0setup, pvec);
 tt = toc();
-fprintf('--- Took %gs\n', tt);
+makeMessage('--- Took %gs\n', tt);
 % nominal solution should be identical
-fprintf('nominal identity:  %d\n', isequal(solNOMINAL.y, XsolNOMINAL.y));
+makeMessage('nominal identity:  %d\n', isequal(solNOMINAL.y, XsolNOMINAL.y));
 Xuu_VDE = deval(XsolSENS, compGridTdot);
 for i = 1:np
    XpsensVDE{i} = Xuu_VDE((i-1)*N+1:i*N, :);  %#ok<SAGROW>
@@ -104,7 +104,7 @@ for i = 1:np
    u_FD{i}    = deval(solFDp{i}, compGridTdot);   %#ok<SAGROW>
    psensFD{i} = ( u_FD{i} - u_NOMINAL ) / hFD;    %#ok<SAGROW>
    tFD = toc();
-   fprintf('FD %d/%d took %gs\n', i, np, tFD);
+   makeMessage('FD %d/%d took %gs\n', i, np, tFD);
 end
 
 

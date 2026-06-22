@@ -36,7 +36,7 @@ function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
    % debug messages
    if FPEX0setup.debugMode.calcresvec
       paramString = sprintf('%22.16f ', p_all );
-      fprintf('calcresvec:  p = [ %s ]\n', paramString);
+      makeMessage('calcresvec:  p = [ %s ]\n', paramString);
    end
 
    

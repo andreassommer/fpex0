@@ -64,11 +64,12 @@ function dataMat = DSCtools_readData(fid, enc, columnCount, emptyVal)
       end
       
    catch err
-      fprintf('Error while reading data line # %d: \n', linecount);
-      fprintf('Line content: %s\n', line);
-      fprintf('Catched error:\n');
-      disp(err)
-      fprintf('Stack trace:\n');
+      makeMessage('Error while reading data line # %d: \n', linecount);
+      makeMessage('Line content: %s\n', line);
+      makeMessage('Catched error:\n');
+      errmsg = getMatlabDisplay(err);
+      makeMessage('%s\n', errmsg);
+      makeMessage('Stack trace:\n');
       disp(err.stack)
       rethrow(err)
    end

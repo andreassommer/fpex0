@@ -87,13 +87,13 @@ function [desc, enc, fileHeaderStrings] = DSCtools_readFileHeader(fid, enc)
    % ====================================
    if ~isempty(decimalDelimiter)
       if ~strcmp(enc.decimalDelimiter, decimalDelimiter)
-         fprintf('Updating decimal delimiter from "%s" to "%s"\n', enc.decimalDelimiter, decimalDelimiter);
+         makeMessage('Updating decimal delimiter from "%s" to "%s"\n', enc.decimalDelimiter, decimalDelimiter);
          enc.decimalDelimiter = decimalDelimiter;
       end
    end
    if ~isempty(fieldDelimiter)
       if ~strcmp(enc.fieldDelimiter, fieldDelimiter)
-         fprintf('Updating field delimiter from "%s" to "%s"\n', enc.fieldDelimiter, fieldDelimiter);
+         makeMessage('Updating field delimiter from "%s" to "%s"\n', enc.fieldDelimiter, fieldDelimiter);
          enc.fieldDelimiter = fieldDelimiter;
       end
    end
@@ -105,9 +105,7 @@ function [desc, enc, fileHeaderStrings] = DSCtools_readFileHeader(fid, enc)
    headerColumnCounts = cellfun(@length,strfind(fileHeaderStrings,';')) + 1;
    headerColumnCount = getMostFrequentElement(headerColumnCounts);
    if ~(all(headerColumnCounts == headerColumnCount))
-      disp('Detected header columns:')
-      fprintf('%d ',headerColumnCounts);
-      fprintf('\n')
+      makeMessage('\nDetected header columns: %d\n', headerColumnCounts);
       warning('Inconsistent number of fields in file header. Using: %d', headerColumnCount)
    end
    %

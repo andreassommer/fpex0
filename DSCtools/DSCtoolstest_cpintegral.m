@@ -43,7 +43,7 @@ for k = 1:length(dsc)
    linbase = @(x) interp1([T(1), T(end)], [mean_cp_l, mean_cp_r], x);
    deltaH_ub = integral(@(x) max(0, cpfun(x)-linbase(x)), T(1), T(end));
    
-   fprintf('Displaying #%02d: %-40s --- deltaH = %5.1f -- deltaH_ub = %5.1f -- Tonset = %5.1f -- Toffset = %5.1f -- Tmin/Tmax=(%5.1f,%5.1f)\n', ...
+   makeMessage('Displaying #%02d: %-40s --- deltaH = %5.1f -- deltaH_ub = %5.1f -- Tonset = %5.1f -- Toffset = %5.1f -- Tmin/Tmax=(%5.1f,%5.1f)\n', ...
             k, data.fileSpec, deltaH, deltaH_ub, data.cp.bldata.onset, data.cp.bldata.endset, T(1), T(end));
    
    if true
