@@ -43,11 +43,11 @@ function [desc, enc, fileHeaderStrings] = DSCtools_readFileHeader(fid, enc)
       % analyse line
       if (linelen==0)
          % empty line, continue reading
-      elseif (linelen>=2) && strcmp(line(1:2),'##')
+      elseif (linelen>=2) && strcmp(line(1:2), enc.columnHeaderSymbol)
          % line begins with ## --> column headers, then rewind and stop reading!
          fseek(fid, -rawlen, 0); 
          break
-      elseif strcmp(line(1),'#')
+      elseif strcmp(line(1),enc.fileHeaderSymbol)
          % line starts with a # (marks a comment in header)
          fileHeaderStrings{end+1} = line;                                                    %#ok<AGROW>
       else
@@ -128,7 +128,7 @@ function [desc, enc, fileHeaderStrings] = DSCtools_readFileHeader(fid, enc)
      
      % make field name: ensure it consists only of letters; and trim value string
      idx = isstrprop(content{1},'alphanum');
-     fieldNames{k} = genvarname(content{1}(idx)); % ensure it's an valid variable name
+     fieldNames{k} = matlab.lang.makeValidName(content{1}(idx)); % ensure it's an valid variable name
      fieldContents(k,:) = content(2:end);
   
    end
