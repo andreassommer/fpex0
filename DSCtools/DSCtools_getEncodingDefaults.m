@@ -13,6 +13,9 @@ function enc = DSCtools_getEncodingDefaults()
    enc.encoding         = 'ISO-8859-1';   % this one fits best, but still does not get "degree" and "micro"
    enc.fieldDelimiter   = ';';
    enc.decimalDelimiter = ',';
+   enc.fileHeaderSymbol   = '#';
+   enc.columnHeaderSymbol = '##';
+   enc.headerDelimiter  = ':';
 
    
    % depending on the current character set, use the following substitutions
