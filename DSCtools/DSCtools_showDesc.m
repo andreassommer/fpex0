@@ -5,11 +5,26 @@ function DSCtools_showDesc(DSCdata, field)
 % 
 % INPUT:  DSCdata --> DSC data structure as returned by DSCtools_readFile()
 %           field --> field name to be shown
+%                     if field is empty, a list of all fields is shown.
 %
 % OUTPUT: on display
 %
 % Author: Andreas Sommer, Jun2026
 % email@andreas-sommer.eu
+
+% special case: field is empty
+if isempty(field)
+   fieldlist = arrayfun(@(x) fieldnames(x.desc), DSCdata, 'UniformOutput', false);
+   fieldlist = vertcat(fieldlist{:});  % collect all
+   mfieldlen = length(fieldlist) / length(DSCdata);
+   fields    = unique(fieldlist);      % get unique list
+   makeMessage('Found: %d unique fields in DSCdata.desc, mean field count is %g.\n', length(fields), mfieldlen);
+   for i = 1:length(fields)
+      makeMessage('#%4d  %s\n', i, fields{i});
+   end
+   return
+end
+
 
 % get list of all filenames
 filenames   = arrayfun(@(x) x.rawData.fileSpec, DSCdata, 'UniformOutput', false);
@@ -25,7 +40,7 @@ for i = 1:length(DSCdata)
    filespec = di.rawData.fileSpec;
    id       = di.ID;
    desc     = di.desc;
-   fprintf('%s\n', getEntry(i, id, maxidlen, desc, field, filespec, maxfilelen));
+   makeMessage('%s\n', createOutput(i, id, maxidlen, desc, field, filespec, maxfilelen));
 end
 
 % finito
@@ -33,7 +48,7 @@ end
 
 
 %% HELPERS
-function msg = getEntry(i, id, maxidlen, desc, field, file, maxfilelen)
+function msg = createOutput(i, id, maxidlen, desc, field, file, maxfilelen)
    if isfield(desc, field)
       fieldentry = string(desc.(field));
    else
