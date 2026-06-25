@@ -48,7 +48,7 @@ function enc = DSCtools_getEncodingDefaults()
    enc.subst_strings  = { char_deg,  char_mu };  % must be adjusted to encoding
 
    % store these characters
-   enc.degC = char_deg;
-   enc.mu   = char_mu;
+   enc.deg = char_deg;
+   enc.mu  = char_mu;
   
 end

@@ -7,8 +7,8 @@ function DSCsample = DSCtools_addCP(DSCsample, DSCreference, Tmin, Tmax, signals
 %
 % INPUT:     DSCsample --> DSCtools data structure of sample(s) as returned by DSCtools_readFile(s) - (e.g. pcm)
 %         DSCreference --> DSCtools data structure of reference as returned by DSCtools_readFile(s) - (e.g. saphire)
-%                 Tmin --> lower temperature bound                             [default:  55 degC]
-%                 Tmax --> upper temperature bound                             [default: 160 degC]
+%                 Tmin --> lower temperature bound                         [default taken from DSCTOOLS_GLBAL_SETTINGS]
+%                 Tmax --> upper temperature bound                         [default taken from DSCTOOLS_GLBAL_SETTINGS]
 %         signalsource --> choose 'uV' for DSC voltage or 'mW' for DSC heat flux   [default: 'uV']
 %
 % OUTPUT:    DSCsample --> DSCsample structure with additional field cp.

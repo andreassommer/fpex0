@@ -13,12 +13,14 @@ function settings = DSCtools_settings(varargin)
 %
 % Side effects: May update or replace global DSCTOOLS_GLOBAL_SETTINGS.
 %
-% Author:  Andreas Sommer, Aug2022
+% Author:  Andreas Sommer, Aug2022, Jun2026
 % andreas.sommer@iwr.uni-heidelberg.de
 % code@andreas-sommer.eu
 %
 
 
+% get the encoding of the machine
+enc = DSCtools_getEncodingDefaults();
 
 % DEFAULT SETTINGS  ---  see the respective files for explanations
 % ================
@@ -31,19 +33,27 @@ defaults.addCP_TrangeWarn  = false;
 defaults.addCP_defaultSignalSource = 'uV';
 defaults.addCP_defaultTmax = 160;
 defaults.addCP_defaultTmin =  55;
-% dataMAT layout
-defaults.dataMAT_column_t  = 2;
-defaults.dataMAT_column_T  = 1;
-defaults.dataMAT_column_uV = 3;
-defaults.dataMAT_column_sf = 4;
+
+% warnings if header columns (of data section) cannot be retrieved
+defaults.dataMAT_warn_if_column_not_found  = true;
+defaults.dataMAT_warn_if_column_not_unique = true;
+
+% expected units
+defaults.expectedUnits = struct( ...
+           'Time'        , 'min' , ...
+           'Temperature' , sprintf('%cC', enc.deg), ...    % degree Celsius
+           'MicroVolts'  , 'uV'  , ...
+           'MilliWatts'  , 'mW'  , ...
+           'Scaling'     , 'uV/mW' ...
+           );
+
 
 % =================
 % Do not edit below
 
 
-
 % access to global settings structure
-global DSCTOOLS_GLOBAL_SETTINGS
+global DSCTOOLS_GLOBAL_SETTINGS         %#ok<GVMIS>
 
 % default values for input arguments
 replaceCurrentSettings = false;
