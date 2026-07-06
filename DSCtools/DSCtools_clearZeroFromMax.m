@@ -11,7 +11,7 @@ function datavec = DSCtools_clearZeroFromMax(datavec)
    %
    % Author:  Andreas Sommer, Apr2017
    % andreas.sommer@iwr.uni-heidelberg.de
-   % email@andreas-sommer.eu
+   % code@andreas-sommer.eu
    %
 
    % Find index/position of maximal value
