@@ -7,8 +7,8 @@ function varargout = DSCtools_display(DSCdata, varargin)
 %        key-value-pairs --> possible keys are:
 %                            'fignum'     : figure to display into                 [default: 1000             ]
 %                            'datafield'  : name of data field to be displayed     [default: mW               ]
-%                            'normbymass' : if true, data is divided by mass       [default: true             ]
-%                            'normbyrate' : if true, data is divided by heat rate  [default: true             ]
+%                            'normbymass' : if true, data is divided by mass       [default: false            ]
+%                            'normbyrate' : if true, data is divided by heat rate  [default: false            ]
 %                            'sort'       : one of 'heatrate' or 'mass' or 'none'  [default: 'none'           ]
 %                            'group'      : one of 'heatrate' or 'mass' or 'none'  [default: heatrate         ]
 %                            'ngroups'    : expected number of groups              [default: [] for autodetect]
@@ -44,8 +44,8 @@ args = varargin;
 [group       , args] = olGetOption(args, 'group'       , 'heatrate');
 [ngroups     , args] = olGetOption(args, 'ngroups'     , []        );
 [sorting     , args] = olGetOption(args, 'sort'        , 'none'    );
-[normbymass  , args] = olGetOption(args, 'normbymass'  , true      );
-[normbyrate  , args] = olGetOption(args, 'normbyrate'  , true      );
+[normbymass  , args] = olGetOption(args, 'normbymass'  , false     );
+[normbyrate  , args] = olGetOption(args, 'normbyrate'  , false     );
 [linkopt     , args] = olGetOption(args, 'linkaxes'    , 'off'     );
 [gridopt     , args] = olGetOption(args, 'grid'        , 'off'     );
 [multifig    , args] = olGetOption(args, 'multifig'    , false     );
@@ -87,11 +87,32 @@ switch lower(group)
    otherwise
       error('Unknown group: %s', group);
 end
+groupValues = reshape(groupValues, [], 1);  % reshape for clustering algorithms
 
-% use user specified group count
-if isempty(ngroups)
-   groupCount = length(unique(groupValues));
-else
+% For clustering, the Statistic Toolbox must be present (function kmeans() and maybe evalclustering())
+hasStatisticsToolbox = license('test','Statistics_Toolbox');
+
+% use user specified group count - if provided - or determine via optimal clustering
+if isempty(ngroups) && ~isempty(groupValues)
+   groupCount = length(unique(groupValues));  % first guess for grouping -- good for heat rates
+   % if Statistics Toolbox is available, try to find best number of clusters
+   if (groupCount > 1) && hasStatisticsToolbox
+      % evaluate cluster quality
+      eva = evalclusters(groupValues, 'kmeans', 'silhouette', 'klist', groupCount);
+      % if not every value is in its own group and residual is zero --> perfect clustering (e.g. by heat rates)
+      if (groupCount < length(groupValues)) && isinf(eva.CriterionValues) || eva.CriterionValues == 1.0
+         % perfect clustering achieved
+         % keep groupCount
+      else
+         % determine optimal number of groups
+         maxClusters = ceil(length(unique(groupValues))/2);  % crude heuristic - works often for masses
+         eva = evalclusters(groupValues, 'kmeans', 'silhouette', 'klist', 1:maxClusters);
+         groupCount = eva.OptimalK;
+      end
+   else
+      % if toolbox is not available, use unique values for grouping (good for heat rates)
+   end
+else % ngroups was specified
    groupCount = ngroups;
 end
 
@@ -99,8 +120,9 @@ end
 if isempty(groupValues)
    groupCount = 1;
    groupMeans = nan();
-   groupIdx = ones(nDSC, 1);
+   groupIdx = ones(nDSC, 1);  % all in 1 group
 else
+   % kmeans requires Statistics Toolbox
    [idx, C] = kmeans(reshape(groupValues, [], 1), groupCount, 'OnlinePhase', 'on', 'Start', 'uniform', 'replicates', 100);
    [C, ord] = sort(C, 'ascend');   % Matlab always uses stable sort
    groupMeans = C;
@@ -136,6 +158,10 @@ if ~mergefig
    axisoffset = length(findall(handles.layout, 'type', 'axes'));
 end
 
+
+
+
+
 % plot by group
 for k = 1:groupCount
    if multifig
@@ -149,8 +175,7 @@ for k = 1:groupCount
    for i = 1:length(sel)
       plotidx = plotidx + 1;         % for enumerating the plots in same order as DSCdata
       d = sel(i);
-      T = d.data.T;
-      Y = d.data.(datafield);
+      [T, Y] = selectData(d, datafield);
       if (normbymass),  Y = Y ./ d.mass;  end
       if (normbyrate),  Y = Y ./ d.rate;  end
       ph = plot(handles.axes(k), T, Y, 'Displayname', makeLabel(d, 'compact'));  % plot
@@ -191,9 +216,12 @@ function tstring = makeLabel(dk, type)
          tstring = '';
          tstring = addString(tstring, sprintf('rate: %+4g K/min', rate));
          tstring = addString(tstring, sprintf('mass: %5g mg', mass));
+         tstring = addString(tstring, sprintf('[cr: %s mg]', dk.desc.SAMPLECRUCIBLEMASSmg));
          tstring = addString(tstring, sprintf('filename: %s', file));
       case 'compact'
-         tstring = sprintf('%+4g K  %5.2f mg  %s', rate, mass, file);
+         tstring = sprintf('%+4g K  %5.2f mg', rate, mass);
+         tstring = addString(tstring, sprintf('[cr: %s mg]', dk.desc.SAMPLECRUCIBLEMASSmg));
+         tstring = addString(tstring, sprintf('%s', file));
    end
 end
 
@@ -208,8 +236,23 @@ function addDataTip(ph, dscdata)
    len = length(ph.XData);
    repstr = @(s) repmat(string(s), len, 1);
    repvec = @(v) repmat(v, len, 1);
-   ph.DataTipTemplate.DataTipRows(end+1) = dataTipTextRow('Mass'  , repvec(dscdata.mass));
-   ph.DataTipTemplate.DataTipRows(end+1) = dataTipTextRow('Rate'  , repvec(dscdata.rate));
-   ph.DataTipTemplate.DataTipRows(end+1) = dataTipTextRow('ID'  , repstr(dscdata.ID));
-   ph.DataTipTemplate.DataTipRows(end+1) = dataTipTextRow('File', repstr(dscdata.rawData.fileSpec));
+   ph.DataTipTemplate.DataTipRows(end+1) = dataTipTextRow('Mass' , repvec(dscdata.mass));
+   ph.DataTipTemplate.DataTipRows(end+1) = dataTipTextRow('Rate' , repvec(dscdata.rate));
+   ph.DataTipTemplate.DataTipRows(end+1) = dataTipTextRow('ID'   , repstr(dscdata.ID));
+   ph.DataTipTemplate.DataTipRows(end+1) = dataTipTextRow('File' , repstr(dscdata.rawData.fileSpec));
+   ph.DataTipTemplate.DataTipRows(end+1) = dataTipTextRow('CruDiff' , repstr(str2double(dscdata.desc.SAMPLECRUCIBLEMASSmg)-str2double(dscdata.desc.REFERENCECRUCIBLEMASSmg)));
+end
+
+
+function [T,Y] = selectData(DSCdata, datafield)
+   if strcmpi(datafield, 'cp')
+      T = DSCdata.cp.T;
+      Y = DSCdata.cp.values;
+   elseif strcmpi(datafield, 'latentcp')
+      T = DSCdata.cp.T;
+      Y = DSCdata.cp.latentdata;
+   else
+      T = DSCdata.data.T;
+      Y = DSCdata.data.(datafield);
+   end
 end
