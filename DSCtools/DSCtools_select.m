@@ -1,5 +1,5 @@
-function dscdata = DSCtools_select(dscdata, varargin)
-   % function dscdata = DSCtools_select(dscdata, key-value-pair*)
+function [dscdata, idx] = DSCtools_select(dscdata, varargin)
+   % function [dscdata, idx] = DSCtools_select(dscdata, key-value-pair*)
    %
    % Selects a subset of the dsc measurements.
    %
@@ -14,6 +14,7 @@ function dscdata = DSCtools_select(dscdata, varargin)
    %
    % OUTPUT:     dscdata --> Struct array with contents as read by DSCtools_readFile.
    %                         See there for documentation.
+   %                 idx --> indices of the selected subset in the input dscdata struct array
    %
    %
    % Author: Andreas Sommer  --  Mar2017, Aug2022, Jun2026
@@ -21,37 +22,55 @@ function dscdata = DSCtools_select(dscdata, varargin)
    % code@andreas-sommer.eu
    %
 
-   % store the arguments
+   % quick return on empty data
+   if isempty(dscdata), idx = []; return; end
+
+   % process arguments
    args = varargin;
+   [ ratemin        , args] = olGetOption(args, 'ratemin' , -inf());
+   [ ratemax        , args] = olGetOption(args, 'ratemax' , +inf());
+   [ massmin        , args] = olGetOption(args, 'massmin' , -inf());
+   [ massmax        , args] = olGetOption(args, 'massmax' , +inf());
+   [ regexp_id      , args] = olGetOption(args, 'id'      , '');
+   [ regexp_filespec, args] = olGetOption(args, 'filespec', '');
+   olWarnIfNotEmpty(args, true); % unprocessed args left?
 
-   % process the bound fields (if specified)
-   [ ratemin, args] = olGetOption(args, 'ratemin', -inf());
-   [ ratemax, args] = olGetOption(args, 'ratemax', +inf());
-   [ massmin, args] = olGetOption(args, 'massmin', -inf());
-   [ massmax, args] = olGetOption(args, 'massmax', +inf());
-   [ regexp_id      , args] = olGetOption(args, 'id'       , '');
-   [ regexp_filespec, args] = olGetOption(args, 'filespec' , '');
-
-   % select by bounds
-   rates  = [dscdata.rate];    dscdata = dscdata( ( rates >= ratemin) & ( rates <= ratemax) );
-   masses = [dscdata.mass];    dscdata = dscdata( (masses >= massmin) & (masses <= massmax) );
-
+   % select by rate
+   rates    = [dscdata.rate];
+   idx_rate = ( rates >= ratemin) & ( rates <= ratemax) ;
+         
+   % select by mass
+   masses   = [dscdata.mass];
+   idx_mass = (masses >= massmin) & (masses <= massmax) ;
+   
    % regexp on ID
+   idx_ID = false(size(dscdata));
    if ~isempty(regexp_id)
       allIDs = {dscdata.ID};
-      found = find_regexp(allIDs, regexp_id);
-      dscdata = dscdata(found);
+      linidx_ID = find_regexp(allIDs, regexp_id);
+      idx_ID(linidx_ID) = true;
+   else
+      idx_ID = true;
    end
 
    % regexp on filespec
+   idx_file = false(size(dscdata));
    if ~isempty(regexp_filespec)
       allfiles = arrayfun(@(x) x.rawData.fileSpec, dscdata, 'uniformoutput', false);
-      found = find_regexp(allfiles, regexp_filespec);
-      dscdata = dscdata(found);
+      linidx_file = find_regexp(allfiles, regexp_filespec);
+      idx_file(linidx_file) = true;
+   else
+      idx_file = true;
    end
 
-   % finito -- unprocessed args left?
-   olWarnIfNotEmpty(args)
+   % combine the respective indices and get the data
+   idx = reshape(idx_rate, [], 1) ...
+       & reshape(idx_mass, [], 1) ...
+       & reshape(idx_ID  , [], 1) ...
+       & reshape(idx_file, [], 1) ;
+   dscdata  = dscdata( idx );
+
+   % finito
    return
 
 end
