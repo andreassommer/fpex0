@@ -20,8 +20,8 @@ function varargout = DSCtools_identifyColumns(columnHeaders, varargin)
 
 % import settings
 global DSCTOOLS_GLOBAL_SETTINGS      %#ok<GVMIS>
-warnIfColumnNotFound  = getSetting(DSCTOOLS_GLOBAL_SETTINGS, 'dataMAT_warn_if_column_not_found'  , true);
-warnIfColumnNotUnique = getSetting(DSCTOOLS_GLOBAL_SETTINGS, 'dataMAT_warn_if_column_not_unique' , true);
+warnIfColumnNotFound  = getSetting(DSCTOOLS_GLOBAL_SETTINGS, 'dataMAT_warn_if_column_not_found' );
+warnIfColumnNotUnique = getSetting(DSCTOOLS_GLOBAL_SETTINGS, 'dataMAT_warn_if_column_not_unique');
 
 
 % make this usable for multiple arguments
