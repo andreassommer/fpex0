@@ -1,88 +1,107 @@
-function [dsc, dsc_reference] = DSCtoolstest_cpintegral(dsc, dsc_reference)
-% JUST TESTING!
+function DSCtools_analyseCP(DSCsample, varargin)
+% DSCtools_analyseCP(DSCsample, varargin)
+%
+% Calculates latend heat of fusion (deltaH) with all available baselines and display results graphically.
+%
+% INPUT:    DSCsample --> dsc data structure with added cp information
+%     key-value-pairs --> 'fignum'   for plotting window
+%                         'fontsize' for setting the font size
+% 
+% OUTPUT:     none
+%
+%
+% Author: Andreas Sommer, Jul2026
+% andreas.sommer@iwr.uni-heidelberg.de
+% code@andreas-sommer.eu
 
 
-% if no dscdata is specified, load it
-if (nargin < 2)
-   dsc_reference = DSCtools_readFiles('Sap-Kurve_10Kmin_H_Segment_7.csv');  % load saphire
+% arg checks
+if (nargin < 1), error('Need input.'); end
+
+% process args
+args = varargin;
+[fignum   , args] = olGetOption(args, 'fignum'  , 913);
+[fontsize , args] = olGetOption(args, 'fontsize',  []);
+olWarnIfNotEmpty(args);
+
+% check if we have a cp field
+if ~isfield(DSCsample, 'cp')
+   error('DSC data does not have a cp field. Use DSCtools_addCP() first.')
 end
-if (nargin < 1)
-   dsc = DSCtools_readFiles('ExpDat_16-*_mitKorr_*Kmin_H.csv');         % load dsc measurements
-end
 
-% always re-calculate cp
-dsc = DSCtools_addCP(dsc, dsc_reference);                               % add cp information
-dsc = DSCtools_sortByTstep(dsc);                                        % sort by Tstep
-dsc = DSCtools_sortByDescField(dsc, 'IDENTITY');                        % sort by Indentity
+% retrieve information about latent heat of fusion
+[deltaH, deltaHinfo] = DSCtools_calc_deltaH(DSCsample, 'doDisplay', true);
 
-
-% save data in main workspace
-assignin('base','xxxdsc',dsc);
-assignin('base','xxxdscref', dsc_reference);
-   
 % display and plot
-for k = 1:length(dsc)
+for k = 1:length(DSCsample)
    
    % accessors to data
-   data = dsc(k);
-   T  = data.cp.T;
-   cp = data.cp.fun(T);
-   cpfun = data.cp.fun;
-   bl = data.cp.blfun(T);
-   cplatent = data.cp.latentfun(T);
-   cplatentfun = data.cp.latentfun;
+   dk = DSCsample(k);
+   T        = dk.cp.T;
+   cp       = dk.cp.fun(T);
+   cplatent = dk.cp.latentfun(T);
+   bldata   = dk.cp.bldata;
+   Tonset   = bldata.onset;
+   Tendset  = bldata.endset;
+   dHk      = deltaHinfo(k);  % accessor for deltaHinfo
+
+   % short info
+   makeMessage('#%02d: %-40s  dH = %5.2f    dH_ub = %5.2f   dH_ToTe = %5.2f    Tonset = %5.2f   Tendset = %5.2f   (Tmin,Tmax)=(%5.1f,%5.1f)\n', ...
+                   k,  dk.ID, dHk.bl_linrange.deltaH, dHk.bl_simple.deltaH  ,dHk.bl_ToTe.deltaH, Tonset, Tendset, T(1), T(end));
    
-   % heat of fusion (integral over latentcp)
-   deltaH  = integral(cplatentfun, T(1), T(end));
-   
-   % upper limit of heat of fusion (integral with linear baseline starting from mean(cp(T(1:w))) to mean(cp(T(end-w:end)));
-   % window length: one degree celsius
-   window = find(T-T(1)>=1.0);
-   mean_cp_l = mean(cp(1:window));
-   mean_cp_r = mean(cp(end-window:end));
-   linbase = @(x) interp1([T(1), T(end)], [mean_cp_l, mean_cp_r], x);
-   deltaH_ub = integral(@(x) max(0, cpfun(x)-linbase(x)), T(1), T(end));
-   
-   makeMessage('Displaying #%02d: %-40s --- deltaH = %5.1f -- deltaH_ub = %5.1f -- Tonset = %5.1f -- Toffset = %5.1f -- Tmin/Tmax=(%5.1f,%5.1f)\n', ...
-            k, data.fileSpec, deltaH, deltaH_ub, data.cp.bldata.onset, data.cp.bldata.endset, T(1), T(end));
-   
-   if true
-      clf; hold on;
-      plot(T,cp,'b');
-      plot(T,bl,'g','linewidth',2.0);
-      plot(T,cplatent,'r');
-      plot(T,linbase(T),'g:');
-      legend('cp', 'baseline', 'cp_{latent}','simple baseline','Location','West')
-      titlestr = sprintf('File: %s --- Identity: %s', data.fileSpec, data.desc.IDENTITY);
-      title(titlestr, 'Interpreter', 'none')
-      ax = axis(); 
-      infostr = makeInfo('deltaH'            , deltaH                       , ...             
-                         'deltaH (simpleBL)' , deltaH_ub                    , ...
-                         'Tonset'            , data.cp.bldata.onset         , ...
-                         'Tendset'           , data.cp.bldata.endset        , ...
-                         'Tmin'              , T(1)                         , ...
-                         'Tmax'              , T(end)                       , ...
-                         'left BL intercept' , data.cp.bldata.reg_l.a       , ...
-                         'left BL slope'     , data.cp.bldata.reg_l.b       , ...
-                         'left BL stddev'    , sqrt(data.cp.bldata.reg_l.s2), ...
-                         'right BL intercept', data.cp.bldata.reg_r.a       , ...
-                         'right BL slope'    , data.cp.bldata.reg_r.b       , ...
-                         'right BL stddev'   , sqrt(data.cp.bldata.reg_r.s2) );
-      text(ax(1), ax(4), infostr, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top', 'Interpreter', 'none', 'FontName', 'FixedWidth')
+   % if a fignum is specified, do a visualization
+   if ~isempty(fignum)
+      figure(fignum); clf; axh = gca(); hold(axh, 'on');
+      plot(axh, T, cp                                   , 'c' , 'DisplayName', 'cp'           , 'linewidth', 1.5);
+      plot(axh, T, cplatent                             , 'm' , 'DisplayName', 'cp latent'    , 'linewidth', 1.5);
+      plot(axh, T, bldata.baselines.bl_linrange.blfun(T), 'g' , 'DisplayName', 'baseline'     , 'linewidth', 1.0);
+      plot(axh, T, bldata.baselines.bl_simple  .blfun(T), 'g:', 'DisplayName', 'baseline_ub'  , 'linewidth', 1.0);
+      plot(axh, T, bldata.baselines.bl_ToTe   .blfun(T), 'r:', 'DisplayName', 'baseline_ToTe', 'linewidth', 1.5);
+      xline(axh, [bldata.onset  bldata.endset], 'r:' , 'onset/endset' , 'LabelVerticalAlignment', 'bottom', 'DisplayName', 'onset/endset');
+      xline(axh, [bldata.linL   bldata.linR  ], 'r--', 'linear ranges', 'LabelVerticalAlignment', 'bottom', 'DisplayName', 'linear range');
+      legend(axh, 'Location','NorthEast','Interpreter','none');
+      titlestr = sprintf('#%d/%d  Identity: %s', k, length(DSCsample), dk.ID);
+      title(axh, titlestr, 'Interpreter', 'none')
+      infostr = makeInfo( 'deltaH'            , dHk.bl_linrange.deltaH  ...             
+                        , 'deltaH (Ton-Tend)' , dHk.bl_ToTe.deltaH      ...
+                        , 'deltaH (simpleBL)' , dHk.bl_simple.deltaH    ...
+                        , 'Tonset'            , bldata.onset          ...
+                        , 'Tendset'           , bldata.endset         ...
+                        , 'linear limit left' , bldata.linL           ...
+                        , 'linear limit right', bldata.linR           ...
+                        , 'Tmin'              , T(1)                  ...
+                        , 'Tmax'              , T(end)                ...
+                        , 'BL left icept'     , bldata.reg_L.a        ...
+                        , 'BL left slope'     , bldata.reg_L.b        ...
+                        , 'BL left stddev'    , sqrt(bldata.reg_L.s2) ...
+                        , 'BL right icept'    , bldata.reg_R.a        ...
+                        , 'BL right slope'    , bldata.reg_R.b        ...
+                        , 'BL right stddev'   , sqrt(bldata.reg_R.s2) ...
+                        );
+      axlim = axis(); 
+      th = text(axlim(1), axlim(4), infostr, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top', 'Interpreter', 'none', 'FontName', 'FixedWidth');
+      if ~isempty(fontsize)
+         set([th axh], 'FontSize', fontsize); 
+      end
       pause
    end
    
-end
-
-
-   function infostr = makeInfo(varargin)
-      maxlen = max(cellfun(@length, {varargin{1:2:end}}));
-      formatstr = sprintf('\n %%%ds = %%7.3f', maxlen);
-      infostr = '';
-      for j=1:2:length(varargin)
-         infostr = [infostr sprintf(formatstr, varargin{j}, varargin{j+1})];
-      end
-   end
+end % of visualization
 
 % finito
+return
+
+end % of function
+
+
+%% HELPERS
+function infostr = makeInfo(varargin)
+   maxlen = max(cellfun(@length, varargin(1:2:end)));
+   formatstr = sprintf('\n %%-%ds = %%.4g', maxlen);
+   infostr = '';
+   for j=1:2:length(varargin)
+      infostr = [infostr sprintf(formatstr, varargin{j}, varargin{j+1})];  %#ok<AGROW>
+   end
 end
+
+
