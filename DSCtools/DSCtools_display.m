@@ -185,7 +185,7 @@ for k = 1:groupCount
       addDataTip(ph, d)
       handles.plots(plotidx) = ph;   % store the plot handle
    end
-   legend(handles.axes(k), legendstyles{:}, 'Interpreter', 'none', 'location', 'southeast')
+   legend(handles.axes(k), legendstyles{:}, 'Interpreter', 'none', 'location', 'northwest')
    title(handles.axes(k), sprintf('Group #%d:  %s about %g', k, group, groupMeans(k)), 'interpreter', 'none');
    % add tooltip
 
