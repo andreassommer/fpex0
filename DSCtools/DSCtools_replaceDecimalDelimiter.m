@@ -11,7 +11,7 @@ function string = DSCtools_replaceDecimalDelimiter(string, enc)
    %
    % Andreas Sommer, Mar2017
    % andreas.sommer@iwr.uni-heidelberg.de
-   % email@andreas-sommer.eu
+   % code@andreas-sommer.eu
    %
    
    % check if enc is given

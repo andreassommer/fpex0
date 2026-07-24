@@ -10,7 +10,7 @@ function string = DSCtools_replaceChars(string, enc)
    %
    % Andreas Sommer, Mar2017
    % andreas.sommer@iwr.uni-heidelberg.de
-   % email@andreas-sommer.eu
+   % code@andreas-sommer.eu
    %
    
    for k = 1:length(enc.subst_codes)

@@ -5,7 +5,7 @@ function [newlinestring, len] = DSCtools_getNewlineDesc(fid)
    %
    % Author: Andreas Sommer, Mar2017
    % andreas.sommer@iwr.uni-heidelberg.de
-   % email@andreas-sommer.eu
+   % code@andreas-sommer.eu
    
    % detect line ending markers; retrieve their length
    lineW = fgets(fid);            % read line with newline chars

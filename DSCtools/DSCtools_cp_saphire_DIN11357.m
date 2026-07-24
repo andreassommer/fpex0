@@ -12,7 +12,7 @@ function cp = DSCtools_cp_saphire_DIN11357(T, unit)
 %
 % Author: Andreas Sommer, Mar2017
 % andreas.sommer@iwr.uni-heidelberg.de
-% email@andreas-sommer.eu
+% code@andreas-sommer.eu
 %
 
 

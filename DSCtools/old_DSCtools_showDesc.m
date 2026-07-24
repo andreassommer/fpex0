@@ -9,7 +9,7 @@ function DSCtools_showDesc(DSCarray)
 %
 % Author: Andreas Sommer, Mar2017
 % andreas.sommer@iwr.uni-heidelberg.de
-% email@andreas-sommer.eu
+% code@andreas-sommer.eu
 
 
 

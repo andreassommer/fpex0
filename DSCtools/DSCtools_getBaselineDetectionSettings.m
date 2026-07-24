@@ -10,7 +10,7 @@ function blds = DSCtools_getBaselineDetectionSettings(preset)
 %
 % Author:  Andreas Sommer, Apr2017, Dec2021, Jun2026
 % andreas.sommer@iwr.uni-heidelberg.de
-% email@andreas-sommer.eu
+% code@andreas-sommer.eu
 %
 
 % call without or with empty argument

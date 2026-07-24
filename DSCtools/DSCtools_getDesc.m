@@ -10,7 +10,7 @@ function content = DSCtools_getDesc(DSCdata, field)
 % OUTPUT:  content of field as cellstr (cell array of char arrays).
 %
 % Author: Andreas Sommer, Jun2026
-% email@andreas-sommer.eu
+% code@andreas-sommer.eu
 
 % special case: field is empty
 if isempty(field)

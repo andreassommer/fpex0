@@ -11,7 +11,7 @@ function [DSCdata, sortidx] = DSCtools_sortByMass(DSCdata, mode)
 %
 % Author: Andreas Sommer, Jun2026
 % andreas.sommer@iwr.uni-heidelberg.de
-% email@andreas-sommer.eu
+% code@andreas-sommer.eu
 
 % mode specified?
 if (nargin < 2)

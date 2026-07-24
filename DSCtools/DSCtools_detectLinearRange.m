@@ -23,7 +23,7 @@ function [stopidx,  reg, initreg] = DSCtools_detectLinearRange(X,Y,side,initlen,
 %
 % Author:  Andreas Sommer, Mar2017
 % andreas.sommer@iwr.uni-heidelberg.de
-% email@andreas-sommer.eu
+% code@andreas-sommer.eu
 %
 
 

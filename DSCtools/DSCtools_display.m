@@ -26,7 +26,7 @@ function varargout = DSCtools_display(DSCdata, varargin)
 %
 % Author: Andreas Sommer, Jun2026
 % andreas.sommer@iwr.uni-heidelberg.de
-% email@andreas-sommer.eu
+% code@andreas-sommer.eu
 
 
 % quick return on empty data

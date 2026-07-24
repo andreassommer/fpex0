@@ -11,7 +11,7 @@ function [DSCdata, sortidx] = DSCtools_sortByFileSpec(DSCdata, mode)
 %
 % Author: Andreas Sommer, Mar2017
 % andreas.sommer@iwr.uni-heidelberg.de
-% email@andreas-sommer.eu
+% code@andreas-sommer.eu
 
 % sortmode -- sort can only sort cell array ascending, so we have to cope here
 if (nargin < 2)

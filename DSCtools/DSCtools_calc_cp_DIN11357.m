@@ -28,7 +28,7 @@ function cpS = DSCtools_calc_cp_DIN11357(T, mS, dscS, cpR, mR, dscR, dsc0)
    %
    % Author: Andreas Sommer, Mar2017
    % andreas.sommer@iwr.uni-heidelberg.de
-   % email@andreas-sommer.eu
+   % code@andreas-sommer.eu
    %
    
    % if some quantities are given as functions, generate the vectors

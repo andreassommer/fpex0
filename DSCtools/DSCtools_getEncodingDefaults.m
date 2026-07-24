@@ -5,7 +5,7 @@ function enc = DSCtools_getEncodingDefaults()
    %
    % Author: Andreas Sommer, Mar2017
    % andreas.sommer@iwr.uni-heidelberg.de
-   % email@andreas-sommer.eu
+   % code@andreas-sommer.eu
    %
    
    % defaults

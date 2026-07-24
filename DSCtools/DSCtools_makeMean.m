@@ -13,7 +13,7 @@ function DSCmean = DSCtools_makeMean(DSCdata, Trange)
 %        others are removed (like fileHeader or rawData.datMat) .
 %
 % Author: Andreas Sommer, Jun2026
-% email@andreas-sommer.eu
+% code@andreas-sommer.eu
 
 
 % get prototype and remove things that we better do not touch

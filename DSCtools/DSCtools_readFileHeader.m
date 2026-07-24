@@ -13,7 +13,7 @@ function [desc, enc, fileHeaderStrings] = DSCtools_readFileHeader(fid, enc)
    %
    % Author: Andreas Sommer, Mar2017
    % andreas.sommer@iwr.uni-heidelberg.de
-   % email@andreas-sommer.eu
+   % code@andreas-sommer.eu
    %
    
    % save current file position, rewind file

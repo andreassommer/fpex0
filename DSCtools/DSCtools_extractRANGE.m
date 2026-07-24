@@ -18,7 +18,7 @@ function Tinfo = DSCtools_extractRANGE(rangeString, enc)
    %
    % Author: Andreas Sommer, Mar2017
    % andreas.sommer@iwr.uni-heidelberg.de
-   % email@andreas-sommer.eu
+   % code@andreas-sommer.eu
    %
    
    % Range-String:  160°C/10,0(K/min)/25°C

@@ -12,7 +12,7 @@ function uV = DSCtools_EMFwrt0(T)
 %
 %  Author: Andreas Sommer, May17
 %  andreas.sommer@iwr.uni-heidelberg.de
-%  email@andreas-sommer.eu
+%  code@andreas-sommer.eu
 %
 %
 

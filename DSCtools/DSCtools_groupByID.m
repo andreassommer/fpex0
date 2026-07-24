@@ -11,7 +11,7 @@ function dscgroups = DSCtools_groupByID(dscdata)
 %
 % Author: Andreas Sommer, Apr2017
 % andreas.sommer@iwr.uni-heidelberg.de
-% email@andreas-sommer.eu
+% code@andreas-sommer.eu
 %
 
 

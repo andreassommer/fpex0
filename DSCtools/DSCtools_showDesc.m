@@ -10,7 +10,7 @@ function DSCtools_showDesc(DSCdata, field)
 % OUTPUT: on display
 %
 % Author: Andreas Sommer, Jun2026
-% email@andreas-sommer.eu
+% code@andreas-sommer.eu
 
 % special case: field is empty
 if isempty(field)

@@ -18,7 +18,7 @@ function [DSCdata, sortidx] = DSCtools_sortByDescField(DSCdata, fieldname, trans
 %
 % Author: Andreas Sommer, Mar2017
 % andreas.sommer@iwr.uni-heidelberg.de
-% email@andreas-sommer.eu
+% code@andreas-sommer.eu
 
 % transformation specified?
 if (nargin < 3); transformation = []; end
