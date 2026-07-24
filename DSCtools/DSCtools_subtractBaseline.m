@@ -1,30 +1,30 @@
-function [Yvals, Yfun, Yfunpp] = DSCtools_subtractBaseline(X, Yin, blfun, clearzero, nonnegative, onset, endset)
-   % [Yvals, Yfun, Yfunpp] = DSCtools_subtractBaseline(X, Yin, blfun, clearzero, nonnegative, onset, endset)
+function [Yvals, Yfun, Yfunpp] = DSCtools_subtractBaseline(X, Yin, baseline, clearzero, nonnegative, onset, endset)
+   % [Yvals, Yfun, Yfunpp] = DSCtools_subtractBaseline(X, Yin, baseline, clearzero, nonnegative, onset, endset)
    % 
    % Subtracts the baseline from given points.
    %
    % INPUT:     X --> x values (e.g. vector temperatures)
    %            Y --> y values or function (e.g. vector of cp values, or function cp(T))
-   %        blfun --> function handle to baseline function
-   %    clearzero --> flag indicating to clear zeros (see DSCtools_clearZeroFromMax) (default: true)
-   %  nonnegative --> flag indicating to ensure nonnegativity                      (default: true)
-   %        onset --> onset value (zero values are put below/left of this x value)   [optional]
-   %       endset --> endset value (zero values are put above/right of this x value) [optional]
+   %     baseline --> baseline object
+   %    clearzero --> flag indicating to clear zeros (see DSCtools_clearZeroFromMax) [default: true]
+   %  nonnegative --> flag indicating to ensure nonnegativity                        [default: true]
+   %        onset --> onset value (zero values are put below/left of this x value)   [optional, overrides baseline.onset]
+   %       endset --> endset value (zero values are put above/right of this x value) [optional, overrides baseline.endsset]
    %
    % OUTPUT   Yvals --> processed y values
    %           Yfun --> function of processed values
    %         YfunPP --> piecewise polynomial representation of Yfun
    %
-   % Author:  Andreas Sommer, Apr2017
+   % Author:  Andreas Sommer, Apr2017, Jul2026
    % andreas.sommer@iwr.uni-heidelberg.de
-   % email@andreas-sommer.eu
+   % code@andreas-sommer.eu
    %
    
    % defaults
    if (nargin < 4), clearzero   = true; end
    if (nargin < 5), nonnegative = true; end
-   if (nargin < 6), onset  = min(x); end
-   if (nargin < 7), endset = max(x); end
+   if (nargin < 6), onset  = baseline.onset ; end
+   if (nargin < 7), endset = baseline.endset; end
 
    % if Y is a function, evaluate it at X, otherwise ensure correct dimensions
    if isnumeric(Yin)
@@ -37,7 +37,7 @@ function [Yvals, Yfun, Yfunpp] = DSCtools_subtractBaseline(X, Yin, blfun, clearz
    end
    
    % substract baseline from Y data
-   Yvals = Yvals - blfun(X);
+   Yvals = Yvals - baseline.eval(X);
    
    % make zeros outside the interval [onset, endset]
    Yvals(X<onset) = 0;
