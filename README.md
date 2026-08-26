@@ -5,7 +5,6 @@
 
 This repository requires the following submodules (also available on github):
 - mmtools
-- optionlists
 
 The easiest way to receive them is to use the `--recurse-submodules` option when cloning FPEX0:
 
