@@ -4,11 +4,20 @@
 
 clear; clc; close all;
 
-% 1. Quadratische Figure im Dark-Mode / Deep Space Look
-% fig = figure('Color', [0.03 0.04 0.07], 'Position',[100, 100, 800, 800]);
+% 1. Figure im Dark-Mode / Deep Space Look
+aspect = '4:3';
+switch aspect
+   case '4:3'
+      position = [3200, -100, 1200,  900];
+      spacer = 0.05;  % line spacing in text
+   case '1.1'
+      position = [3200, -100, 1200, 1200];
+      spacer = 0;  % line spacing in text
+   otherwise
+      error('Unknown aspect ratio.')
+end
 backcolor = [0.03 0.04 0.10];
-fig = figure('Color', backcolor, 'Position',[3200, -100, 1200, 1200]);
-% ax = axes('Position', [0.05, 0.05, 0.90, 0.90], 'Color', 'none');
+fig = figure('Color', backcolor, 'Position', position);
 ax = axes('Position', [0.05, 0.05, 0.90, 0.90], 'Color', 'none');
 hold(ax, 'on');
 
@@ -64,7 +73,7 @@ text(ax, -7, 13, max(Z(:))*1.03, 'FPEX_{0}', 'FontSize', 230, 'FontWeight', 'dem
      'Color', [0.0 1.0 1.0], 'FontName', font3, 'HorizontalAlignment', 'left', 'FontAngle', 'normal');
 text(ax, -7, 12.0, max(Z(:))*0.75, 'DSC', 'FontSize', 70, 'FontWeight', 'normal', ...
      'Color', [0.0 1.0 1.0], 'FontName', font3, 'HorizontalAlignment', 'left', 'FontAngle', 'normal');
-text(ax, -7, 12.0, max(Z(:))*0.65, 'De-Smearing', 'FontSize', 70, 'FontWeight', 'normal', ...
+text(ax, -7, 12.0, max(Z(:))*(0.65-spacer), 'De-Smearing', 'FontSize', 70, 'FontWeight', 'normal', ...
      'Color', [0.0 1.0 1.0], 'FontName', font3, 'HorizontalAlignment', 'left', 'FontAngle', 'normal');
 
 
