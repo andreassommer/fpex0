@@ -1,6 +1,29 @@
 # FPEX0: Fokker-Planck-based extrapolation of DSC data to a zero heating rate
 
 
+## Data-driven de-smearing of DSC signals
+
+<img src="logo/fpex0_logo_300x300.png" alt="mmtools Logo" style="width: 150px; height: auto;">
+
+Andreas Sommer, 2016-2026  
+code@andreas-sommer.eu
+
+<br>
+
+## About FPEX0
+
+This repository gives a Matlab implementation of the FPEX0 method 
+for data-driven de-smearing of DSC signals presented in the paper
+
+Sommer, Andreas; Hohenauer, Wolfgang; Barz, Tilman:  
+Data-driven de-smearing of DSC signals.  
+J Therm Anal Calorim (2022).  
+https://doi.org/10.1007/s10973-022-11258-y
+
+
+<br>
+
+
 ## Cloning the repository from github
 
 This repository requires the following submodules (also available on github):
@@ -16,17 +39,7 @@ Alternatively, you can download the required submodules manually from github int
 of the FPEX0 directory.
 
 
-
-
-## About FPEX0
-
-This repository gives a Matlab implementation of the FPEX0 method 
-for data-driven de-smearing of DSC signals presented in the paper
-
-Sommer, Andreas; Hohenauer, Wolfgang; Barz, Tilman:  
-Data-driven de-smearing of DSC signals.  
-J Therm Anal Calorim (2022).  
-https://doi.org/10.1007/s10973-022-11258-y
+<br>
 
 
 ## Running the test example.
@@ -47,28 +60,33 @@ A (close to) optimal solution is found, if the so called "first-order optimality
 (ideally zero, but when using FD approximations in FPEX0, values less than 10 are acceptable. Default is 1.0).
 
 
+<br>
+
 
 ## Questions:
 - Why is it slow?  
-  Answer: Since the Matlab integrators are not capabale to deliver accurate and consistent sensitivity information,
-  which is cruical for optimization, the required derivatives are approximated via (1) external numerical differentiation,
-  or by using the (2) variational differential equations.  
-  (1) requires lot of function evaluations, and highly accurate integration tolerances, leading to lenghty computation times. 
+  Answer: Since the Matlab integrators are not capabale to deliver accurate and consistent sensitivity
+  information, which is cruical for optimization, the required derivatives are approximated via
+  (1) external numerical differentiation, or by using the (2) variational differential equations.  
+  (1) requires lot of function evaluations, and highly accurate integration tolerances, 
+  leading to lenghty computation times. 
   (2) is much faster, and in principle more accurate, but does not deliver consistent sensitivities.
-  With state-of-the-art solvers like SolvIND from our group, we can deliver consistent and highly accurate derivatives.
+  With state-of-the-art solvers like SolvIND from our group, we can deliver consistent and 
+  highly accurate derivatives.
 - Can it be made faster?  
   Answer: Yes. We have much faster external integrators at hand. Contact us for details.
 - Can I do anything to make it faster?  
   There are several possibilities:  
-  - Reduce the integration tolerances, e.g. set reltol = 1e-6 and abstol = 1-e10. 
+  - Reduce the integration tolerances, e.g. set reltol = 1e-6 and abstol = 1-e10.  
     When using the VDE sensitivities (default), the tolerances for the nominal might even be lower.
   - Change finite difference approximation in the optimizer settings to "forward"  
-  - Use a coarser temperature grid - or a finer! The coarser, the more stiff the system becomes at initial times.  
+  - Use a coarser temperature grid - or a finer! The coarser, the more stiff the system becomes
+    at initial times.  
   Note that the aforementioned tricks might negatively impact the optimizer's optimality check, 
   making it hard to detect a "mathematically clean" optimum by testing the first-order optimality,
-  but should still converge to a "good" fit.  
+  but should still converge to a "good" fit. Optimization might be stopped manually after a few iterations.  
   This fit can then be re-evaluated with finer grids, tighter tolerances, etc., to show optimality (if required).
 - Further questions?  
-  Contact us!  By email via andreas.sommer@iwr.uni-heidelberg.de or code@andreas-sommer.eu.
+  Contact us!  By email via andreas.sommer@alumni.uni-heidelberg.de or code@andreas-sommer.eu.
 
 
