@@ -31,7 +31,7 @@ makeMessage('Loading example data . . . ');
 exdatafile = 'ExampleMeasurements.mat';
 exdata = load(exdatafile,'exdata'); % load data
 exdata = exdata.exdata;             % unwrap data
-makeMessage('Loaded.\n');
+makeMessage('#raw', 'Loaded.\n');
 
 % select only specific experiment by ID
 targetID  = '16-407';
@@ -44,5 +44,5 @@ for k = 1:length(exdata)
    FPEX0setup.importMeasurements(exdata(k).ID, exdata(k).rate, exdata(k).cp.T, exdata(k).cp.latentdata, gridskip);
    % cp.latentdata contains the cp values without baseline
 end
-makeMessage('Imported.\n');
+makeMessage('#raw', 'Imported.\n');
 

@@ -84,7 +84,7 @@ function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
       simVals  = simNominal(compIdxSim, k);     % simulations restricted to measurement grid
       resvecs{k} = simVals - measVals;          % residuals
       if (FPEX0setup.debugMode.showProgress)
-         showProgress(meas_T{k}, simVals, measVals, resvecs{k}, meas_count, k);
+         showProgress(meas_T{k}, simVals, measVals, resvecs{k}, meas_count, k, FPEX0setup.Measurements(k).heatrate);
       end
    end   
    % concatenate to residual vector
@@ -103,7 +103,7 @@ function [resvec, jacobian] = FPEX0_calcresvec(FPEX0setup, p_all)
          jj = reshape(jacobian(:,k), N, np);  % jacobian for measurement k
          jj = jj(compIdxSim, :);              % restrict to measurement grid
          jacs{k} = jj;
-%          X{k}       = jacobian((k-1)*N+compIdxSim, :);
+         % X{k} = jacobian((k-1)*N+compIdxSim, :);  % for testing
       end
       jacobian = vertcat(jacs{:});
    end
@@ -120,13 +120,12 @@ end
 
 
 
-function showProgress(T, simVals, measVals, resVals, n, k)
+function showProgress(T, simVals, measVals, resVals, n, k, heatrate)
    persistent hPlots hAxes hFigure
    % create figure if needed;
    if ( isempty(hFigure) || ~isvalid(hFigure) )
       fignum = 339;
       hFigure = figure(fignum);
-      hFigure.GraphicsSmoothing = 'off';
    end
    % number n has changed (or first plot): reset
    if (length(hAxes) ~= n)
@@ -140,12 +139,13 @@ function showProgress(T, simVals, measVals, resVals, n, k)
       hAxes{k} = subplot(1, n, k); 
       cla(hAxes{k});          % clear existing content
       hold(hAxes{k}, 'on');   % hold the following plots
-      hSimVals  = plot(T, simVals , 'g.-', 'DisplayName', 'Simulation' );
-      hMeasVals = plot(T, measVals, 'r.' , 'DisplayName', 'Measurement');
-      hResVals  = plot(T, resVals , 'b.' , 'DisplayName', 'Residual'   );
-      hPlots{k} = struct('hSimVals', hSimVals', 'hMeasVals', hMeasVals', 'hResVals', hResVals); % store handles
+      hSimVals  = plot(hAxes{k}, T, simVals , 'g.-', 'DisplayName', 'Simulation' );
+      hMeasVals = plot(hAxes{k}, T, measVals, 'r.' , 'DisplayName', 'Measurement');
+      hResVals  = plot(hAxes{k}, T, resVals , 'b.' , 'DisplayName', 'Residual'   );
+      hTitle    = title(hAxes{k}, sprintf('rate %g', heatrate));
+      hPlots{k} = struct('hSimVals', hSimVals', 'hMeasVals', hMeasVals', 'hResVals', hResVals, 'hTitle', hTitle); % store handles
       if (k == n)  % add a legend on last figure
-         legend('Location', 'Best');
+         legend('Location', 'NorthWest');
       end
    else
       % plots available, so just update the data

@@ -51,7 +51,7 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
    switch upper(optimizer)
       
       case 'LSQNONLIN'
-         % ============= Using SOLVIND derivatives
+         % ============= Using accurate derivatives
          lsqnonlin_opts = optimoptions(@lsqnonlin);
          lsqnonlin_opts.SpecifyObjectiveGradient = true;       % jacobian is built by calcresvec
          lsqnonlin_opts.CheckGradients           = false;      % the FD approximation is too poor to verify anything
@@ -72,7 +72,7 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
          displayResult(x, resnorm);
 
       case 'LSQNONLINFD'
-         % ============= Derivative-based solver not a good idea, as FD will probably fail for the PDE solutions
+         % ============= Derivative-based solver with FD not a good idea, as FD will probably fail for the PDE solutions
          lsqnonlin_opts = optimoptions(@lsqnonlin);
          lsqnonlin_opts.SpecifyObjectiveGradient = false;      % jacobian is built by calcresvec
          lsqnonlin_opts.CheckGradients           = false;      % the FD approximation is too poor to verify anything
@@ -98,13 +98,13 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
       case 'FMINCONFD'
          % ============= Using SOLVIND derivatives
          warning('FMINCON is not the method of choice for this kind of problem. Try LSQNONLINFD.')
-         %TEST derivatives
-         [ff, jj] = scalarobjective(p_all); df = zeros(size(p_all));
-         for k=1:length(p_all)
-            FDh = 1.0d-7; p_all(k) = p_all(k) + FDh; ff2 = scalarobjective(p_all); 
-            p_all(k) = p_all(k) - FDh; df(k) = (ff2 - ff) / FDh;
-         end
-         keyboard
+         % TEST derivatives
+         % [ff, jj] = scalarobjective(p_all); df = zeros(size(p_all));
+         % for k=1:length(p_all)
+         %    FDh = 1.0d-7; p_all(k) = p_all(k) + FDh; ff2 = scalarobjective(p_all); 
+         %    p_all(k) = p_all(k) - FDh; df(k) = (ff2 - ff) / FDh;
+         % end
+         % keyboard
          fmincon_opts = optimoptions('fmincon');
          fmincon_opts.Algorithm                = 'interior-point';  %'interior-point'; %'sqp'  %'active-set';
          fmincon_opts.SpecifyObjectiveGradient = false;             % no derivatives yet
@@ -119,27 +119,29 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
          fmincon_opts.OutputFcn                = @optimizer_outfun;  
          fmincon_opts.MaxIterations            = 1000;
          [x,fval,exit,out,lambda,grad,hessian] ...
-            = fmincon(@scalarobjective, p_0, A_diff_constr, b_diff_constr, [], [], p_lb, p_ub, [], fmincon_opts);
+            = fmincon(@scalar_objective, p_0, A_diff_constr, b_diff_constr, [], [], p_lb, p_ub, [], fmincon_opts);
          fitsol = struct('x',x,'resnorm',fval,'residual',[],'exitflag',exit,'output',out,...
                          'lambda',lambda,'gradient',grad,'hessian',hessian,'opts',fmincon_opts);
          displayResult(x, fval);
          
       case 'FMINSEARCH'
          % ============ Derivative-free method
-         warning('FMINSEARCH cannot ensure non-negativity constraints. Errors to be expected!');
+         warning('FMINSEARCH usually performs poor for this type of problems!');
          fminsearch_opts = optimset();
-         fminsearch_opts.display     = 'iter';
+         fminsearch_opts.Display     = 'iter';
          fminsearch_opts.TolX        = 1e-4;
+         fminsearch_opts.TolFun      = 1e-3;
          fminsearch_opts.MaxFunEvals = 10000;
          fminsearch_opts.MaxIter     = 10000;
          fminsearch_opts.FunValCheck = 'on';
          fminsearch_opts.UseParallel = 'true';
          fminsearch_opts.Diagnostics = 'on';
          fminsearch_opts.OutputFcn   = @optimizer_outfun;         
-         resvecnormfun = @(p) norm(resvecfun(p));
-         [x,fval,exit] = fminsearch(resvecnormfun, p_0, fminsearch_opts);
+         optfun = @(p) scalar_objective_nonnegdiff(p);
+         [x,fval,exit] = fminsearch(optfun, p_0, fminsearch_opts);
          fitsol = struct('x',x,'fval',fval,'exitflag',exit,'resnorm',fval);
          displayResult(x, fval);
+         warning('FMINSEARCH usually performs poor for this type of problems!');
             
       case {'NONE','SIM','SIMULATE'}
          % ============ Simulation
@@ -189,14 +191,29 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
    
    % ==================================================
    
-   % helpers for fmincon
-   function [ff, jj] = scalarobjective(ppp)
+   % helper for fminsearch: forced non-negativity
+   function ff = scalar_objective_nonnegdiff(ppp)
+      % penalize negative diffusion and ensure non-negative diffusion for 
+      p_FPdiff = ppp(p_FPdiffIdx);    % FP diffusion parameters
+      betamax = FPEX0setup.betamax;   % maximum heat rate
+      diff_start = FPEX0_diffusionFcn(      0, p_FPdiff, betamax);  % diffusion at heat rate Tdot = 0;
+      diff_final = FPEX0_diffusionFcn(betamax, p_FPdiff, betamax);  % diffusion at heat rate Tdot = betamax;
+      diff_penalty = 0;
+      if (diff_start < 0), diff_penalty = diff_penalty - diff_start * 1e6; p_FPdiff(1) = 0; end  % start at valid value
+      if (diff_final < 0), diff_penalty = diff_penalty - diff_final * 1e6; p_FPdiff(2) = 0; end  % ensures non-negativity over the whole range
+      ppp(p_FPdiffIdx) = p_FPdiff;    % rewrite possibly modified parameters
+      ff = 0.5 * norm(resvecfun(ppp))^2 + diff_penalty;
+   end
+
+
+   % helper for fmincon
+   function varargout = scalar_objective(ppp)
       if (nargout==1)
-         ff = 0.5 * norm(resvecfun(ppp))^2;
+         varargout{1} = 0.5 * norm(resvecfun(ppp))^2;
       else
          [FF, JJ] = resvecfun(ppp);
-         ff = 0.5 * norm(resvecfun(ppp))^2;
-         jj = JJ.' * reshape(FF,[],1);
+         varargout{1} = 0.5 * norm(resvecfun(ppp))^2;
+         varargout{2} = JJ.' * reshape(FF,[],1);
       end
    end
 

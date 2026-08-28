@@ -26,17 +26,15 @@ https://doi.org/10.1007/s10973-022-11258-y
 
 ## Cloning the repository from github
 
-This repository requires the following submodules (also available on github):
-- mmtools
-
-The easiest way to receive them is to use the `--recurse-submodules` option when cloning FPEX0:
+The easiest way to download FPEX0 to use the `--recurse-submodules` option 
+and https-based cloning (does not require a github account):
 
 ```
-git clone --recurse-submodules git@github.com:andreassommer/fpex0.git
+git clone --recurse-submodules https://github.com/andreassommer/fpex0.git
 ```
 
-Alternatively, you can download the required submodules manually from github into subfolders 
-of the FPEX0 directory.
+This also downloads the required `mmtools` repository.
+
 
 
 <br>
@@ -50,9 +48,12 @@ of the FPEX0 directory.
     (Please see Matlab's documentation for details)
 3)	Start the test problem by invoking: `FPEX0_exampleFit();`
 
-The example uses Matlab's `lsqnonlin` for optimization; other optimizers are available (see `FPEX0_fit.m`). 
+The example uses Matlab's `lsqnonlin` for optimization, which requires the Optimization Toolbox.
+If that toolbox is not available, other optimizers can be chosen (see `FPEX0_fit.m`),
+but they usually perform poorly. 
 
-The example should converge within approx 20 iterations close to the following point:  
+With `lsqnonlin`, the example should converge within approx. 20 iterations in less than a minute,
+close to the following point:  
 `p = [-0.9553 0.0329 0.2693 3.4700 2.5736 42.0826 131.7993 3.7684 0.1909]`
 
 Depending on the problem and chosen accuracies, the optimization might stop due to different reasons.
