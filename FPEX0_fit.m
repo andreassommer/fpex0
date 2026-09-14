@@ -54,7 +54,6 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
          % ============= Using accurate derivatives
          lsqnonlin_opts = optimoptions(@lsqnonlin);
          lsqnonlin_opts.SpecifyObjectiveGradient = true;       % jacobian is built by calcresvec
-         lsqnonlin_opts.CheckGradients           = false;      % the FD approximation is too poor to verify anything
          lsqnonlin_opts.UseParallel              = true;       % no benefit with analytic jacobian, but it does not hurt
          lsqnonlin_opts.Diagnostics              = 'on';
          lsqnonlin_opts.FunValCheck              = 'off';
@@ -75,7 +74,6 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
          % ============= Derivative-based solver with FD not a good idea, as FD will probably fail for the PDE solutions
          lsqnonlin_opts = optimoptions(@lsqnonlin);
          lsqnonlin_opts.SpecifyObjectiveGradient = false;      % jacobian is built by calcresvec
-         lsqnonlin_opts.CheckGradients           = false;      % the FD approximation is too poor to verify anything
          lsqnonlin_opts.UseParallel              = true;       % very beneficial for FD - initialize pool via parpool(n) 
          lsqnonlin_opts.Diagnostics              = 'on';
          lsqnonlin_opts.FunValCheck              = 'off';
@@ -112,7 +110,6 @@ function fitsol = FPEX0_fit(FPEX0setup, varargin)
          fmincon_opts.StepTolerance            = 1.0d-8;
          fmincon_opts.FunctionTolerance        = 1.0d-10;
          fmincon_opts.OptimalityTolerance      = 1.0d-3;            % differs from lsqnonlin
-         fmincon_opts.CheckGradients           = true;
          fmincon_opts.TypicalX                 = p_0;
          fmincon_opts.UseParallel              = true;
          fmincon_opts.FiniteDifferenceType     = 'central';         % slower, but accuracy needed
